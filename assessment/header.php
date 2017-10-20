@@ -82,7 +82,7 @@ if (isset($CFG['GEN']['favicon'])) {
 } else {
 	echo '<link rel="shortcut icon" href="/favicon.ico" />';
 }
-if (!empty($CFG['use_csrfp'])) {
+if (!empty($CFG['use_csrfp']) && class_exists('csrfProtector')) {
 	echo csrfProtector::output_header_code();
 }
 //$sessiondata['mathdisp'] = 3;
