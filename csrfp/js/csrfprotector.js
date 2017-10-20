@@ -144,6 +144,7 @@ var CSRFP = {
 	 * @return void
 	 */
 	_init: function() {
+		/*  now set in header.php
 		CSRFP.CSRFP_TOKEN = document.getElementById(CSRFP_FIELD_TOKEN_NAME).value;
 		try {
 			CSRFP.checkForUrls = JSON.parse(document.getElementById(CSRFP_FIELD_URLS).value);
@@ -151,7 +152,7 @@ var CSRFP = {
 			console.error(err);
 			console.error('[ERROR] [CSRF Protector] unable to parse blacklisted url fields.');
 		}
-
+		*/
 		//convert these rules received from php lib to regex objects
 		for (var i = 0; i < CSRFP.checkForUrls.length; i++) {
 			CSRFP.checkForUrls[i] = CSRFP.checkForUrls[i].replace(/\*/g, '(.*)')
@@ -162,6 +163,33 @@ var CSRFP = {
 	}
 
 };
+
+//===============
+// Add wrappers for jQuery ajax and submit handlers
+// We're doing at the protocol level, so can do outside init
+//==============
+//==================================================================
+// Adding csrftoken to request resulting from direct form.submit() call
+// Add for each POST, while for mentioned GET request
+// TODO - check for form method
+//==================================================================
+HTMLFormElement.prototype.submit_ = HTMLFormElement.prototype.submit;
+HTMLFormElement.prototype.submit = function() {
+	// check if the FORM already contains the token element
+	//if (!this.getElementsByClassName(CSRFP.CSRFP_TOKEN).length)
+	if (!jQuery(this).find("."+CSRFP.CSRFP_TOKEN).length)
+		this.appendChild(CSRFP._getInputElt());
+	this.submit_();
+}
+//==================================================================
+// prefilter for jQuery ajax to add token to header
+//==================================================================
+jQuery.ajaxPrefilter(function( options, originalOptions, jqXHR ) {
+	if (options['type'].toLowerCase() === "post") {
+		jqXHR.setRequestHeader(CSRFP.CSRFP_TOKEN, CSRFP._getAuthKey());
+	}
+});
+
 
 //==========================================================
 // Adding tokens, wrappers on window onload
@@ -200,116 +228,11 @@ function csrfprotector_init() {
 	// for(var i = 0; i < document.forms.length; i++) {
 	// 	document.forms[i].addEventListener("submit", BasicSubmitInterceptor);
 	// }
-
-	//==================================================================
-	// Adding csrftoken to request resulting from direct form.submit() call
-	// Add for each POST, while for mentioned GET request
-	// TODO - check for form method
-	//==================================================================
-	HTMLFormElement.prototype.submit_ = HTMLFormElement.prototype.submit;
-	HTMLFormElement.prototype.submit = function() {
-		// check if the FORM already contains the token element
-		//if (!this.getElementsByClassName(CSRFP.CSRFP_TOKEN).length)
-		if (!jQuery(this).find("."+CSRFP.CSRFP_TOKEN).length)
-			this.appendChild(CSRFP._getInputElt());
-		this.submit_();
-	}
+	jQuery("form").on("submit", function(event) {
+		BasicSubmitInterceptor(event);
+	});
 
 
-	/**
-	 * Add wrapper for HTMLFormElements addEventListener so that any further
-	 * addEventListens won't have trouble with CSRF token
-	 * todo - check for method
-	 */
-	HTMLFormElement.prototype.addEventListener_ = HTMLFormElement.prototype.addEventListener;
-	HTMLFormElement.prototype.addEventListener = function(eventType, fun, bubble) {
-		if (eventType === 'submit') {
-			var wrapped = CSRFP._csrfpWrap(fun, this);
-			this.addEventListener_(eventType, wrapped, bubble);
-		} else {
-			this.addEventListener_(eventType, fun, bubble);
-		}
-	}
-
-	/**
-	 * Add wrapper for IE's attachEvent
-	 * todo - check for method
-	 * todo - typeof is now obselete for IE 11, use some other method.
-	 */
-	if (typeof HTMLFormElement.prototype.attachEvent !== 'undefined') {
-		HTMLFormElement.prototype.attachEvent_ = HTMLFormElement.prototype.attachEvent;
-		HTMLFormElement.prototype.attachEvent = function(eventType, fun) {
-			if (eventType === 'onsubmit') {
-				var wrapped = CSRFP._csrfpWrap(fun, this);
-				this.attachEvent_(eventType, wrapped);
-			} else {
-				this.attachEvent_(eventType, fun);
-			}
-		}
-	}
-
-
-	//==================================================================
-	// Wrapper for XMLHttpRequest & ActiveXObject (for IE 6 & below)
-	// Set X-No-CSRF to true before sending if request method is
-	//==================================================================
-
-	/**
-	 * Wrapper to XHR open method
-	 * Add a property method to XMLHttpRequst class
-	 * @param: all parameters to XHR open method
-	 * @return: object returned by default, XHR open method
-	 */
-	function new_open(method, url, async, username, password) {
-		this.method = method;
-		var isAbsolute = (url.indexOf("./") === -1) ? true : false;
-		if (!isAbsolute) {
-			var base = location.protocol +'//' +location.host
-							+ location.pathname;
-			url = CSRFP._getAbsolutePath(base, url);
-		}
-		if (method.toLowerCase() === 'get'
-			&& !CSRFP._isValidGetRequest(url)) {
-			//modify the url
-			if (url.indexOf('?') === -1) {
-				url += "?" +CSRFP.CSRFP_TOKEN +"=" +CSRFP._getAuthKey();
-			} else {
-				url += "&" +CSRFP.CSRFP_TOKEN +"=" +CSRFP._getAuthKey();
-			}
-		}
-
-		return this.old_open(method, url, async, username, password);
-	}
-
-	/**
-	 * Wrapper to XHR send method
-	 * Add query paramter to XHR object
-	 *
-	 * @param: all parameters to XHR send method
-	 *
-	 * @return: object returned by default, XHR send method
-	 */
-	function new_send(data) {
-		if (this.method.toLowerCase() === 'post') {
-			// attach the token in request header
-			this.setRequestHeader(CSRFP.CSRFP_TOKEN, CSRFP._getAuthKey());
-		}
-		return this.old_send(data);
-	}
-
-	if (window.XMLHttpRequest) {
-		// Wrapping
-		XMLHttpRequest.prototype.old_send = XMLHttpRequest.prototype.send;
-		XMLHttpRequest.prototype.old_open = XMLHttpRequest.prototype.open;
-		XMLHttpRequest.prototype.open = new_open;
-		XMLHttpRequest.prototype.send = new_send;
-	}
-	if (typeof ActiveXObject !== 'undefined') {
-		ActiveXObject.prototype.old_send = ActiveXObject.prototype.send;
-		ActiveXObject.prototype.old_open = ActiveXObject.prototype.open;
-		ActiveXObject.prototype.open = new_open;
-		ActiveXObject.prototype.send = new_send;
-	}
 	//==================================================================
 	// Rewrite existing urls ( Attach CSRF token )
 	// Rules:

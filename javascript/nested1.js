@@ -9,7 +9,7 @@ var Nested = new Class({
 			childTag: 'LI',
 			ghost: false,
 			childStep: 20, // attempts to become a child if the mouse is moved this number of pixels right
-			handleClass: 'icon', 
+			handleClass: 'icon',
 			onStart: Class.empty,
 			onComplete: Class.empty,
 			onFirstChange: Class.empty,
@@ -22,7 +22,7 @@ var Nested = new Class({
 	},
 
 	initialize: function(list, options) {
-		
+
 		this.setOptions(this.getOptions(), options);
 		if (!this.options.expandKey.match(/^(control|shift)$/)) {
 			this.options.expandKey = 'shift';
@@ -47,7 +47,7 @@ var Nested = new Class({
 				el = el.getParent();
 			}
 			if (!el.hasClass(this.options.handleClass)) return true;
-		} 
+		}
 		while (el.nodeName != this.options.childTag && el != this.list) {
 			el = el.parentNode;
 		}
@@ -87,7 +87,7 @@ var Nested = new Class({
 				el = el.getParent();
 			}
 			if (!el.hasClass(this.options.handleClass)) return true;
-		} 
+		}
 		while (el.nodeName != this.options.childTag && el != this.list) {
 			el = el.parentNode;
 		}
@@ -124,12 +124,12 @@ var Nested = new Class({
 		}
 		event.stop();
 	},
-	
+
 	stop: function(event) {
 		event.stop();
 		return false;
 	},
-	
+
 	getDepth: function(el, add) {
 		var counter = (add) ? 1 : 0;
 		while (el != this.list) {
@@ -138,7 +138,7 @@ var Nested = new Class({
 		}
 		return counter;
 	},
-	
+
 	movement: function(event, el) {
 		var dir, over, check, items;
 		var dest, move, prev, prevParent;
@@ -171,7 +171,7 @@ var Nested = new Class({
 		}
 		// Make sure we end up with a childTag element
 		if (over.nodeName != this.options.childTag) return;
-			
+
 		// store the previous parent 'ol' to remove it if a move makes it empty
 		prevParent = el.getParent();
 		dir = (event.page.y < el.getTop()) ? 'up' : 'down';
@@ -210,7 +210,7 @@ var Nested = new Class({
 				//document.getElementById("submitnotice").innerHTML = dest.parentNode.tagName + ',' + dest.parentNode.parentNode.tagName;
 				move = 'inside';
 			}
-			
+
 		}
 
 		last = dest.getParent().getLast();
@@ -219,7 +219,7 @@ var Nested = new Class({
 			dest = $(dest.parentNode.parentNode);
 			last = dest.getParent().getLast();
 		}
-		
+
 		abort = false;
 		if (move != '') {
 			abort += (dest == el);
@@ -314,7 +314,7 @@ function toSimpleJSON(a) {
 	return out;
 }
 
-function submitChanges() { 
+function submitChanges() {
   var params = 'checkhash='+itemorderhash+'&order='+toSimpleJSON(sortIt.serialize());
   var url = AHAHsaveurl;
   var els = document.getElementsByTagName("input");
@@ -331,18 +331,31 @@ function submitChanges() {
   //return;
 
   document.getElementById(target).innerHTML = ' Saving Changes... ';
-  if (window.XMLHttpRequest) { 
-    req = new XMLHttpRequest(); 
-  } else if (window.ActiveXObject) { 
-    req = new ActiveXObject("Microsoft.XMLHTTP"); 
-  } 
-  if (typeof req != 'undefined') { 
-	req.open("POST", url, true);
-	req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	req.onreadystatechange = function() {NestedahahDone(url, target);}; 
-	req.send(params); 
-  } 
-}  
+	jQuery.ajax({
+		type: "POST",
+		url: url,
+		data: params
+	})
+	.done(function(data) {
+		if (data.charAt(0)=='1') {
+			var p = data.indexOf(':');
+			itemorderhash = data.substring(2,p);
+			document.getElementById(target).innerHTML='';
+			document.getElementById('recchg').disabled = true;
+			window.onbeforeunload = null;
+			setlinksdisp("");
+			document.getElementById("qviewtree").innerHTML = data.substring(p+1);
+			sortIt.haschanged = false;
+		} else {
+			document.getElementById(target).innerHTML=data.substring(2);
+		}
+	})
+	.fail(function(xhr, status, errorThrown) {
+	  document.getElementById(target).innerHTML=" Couldn't save changes:\n"+
+			status + "\n" +req.statusText+
+			"\nError: "+errorThrown
+	});
+}
 
 function quickviewexpandAll() {
 	jQuery("#qviewtree li.blockli.nCollapse").removeClass("nCollapse").children("ul").show();
@@ -350,28 +363,6 @@ function quickviewexpandAll() {
 function quickviewcollapseAll() {
 	jQuery("#qviewtree li.blockli:not(.nCollapse)").addClass("nCollapse").children("ul").hide();
 }
-
-function NestedahahDone(url, target) { 
-  if (req.readyState == 4) { // only if req is "loaded" 
-    if (req.status == 200) { // only if "OK" 
-	    if (req.responseText.charAt(0)=='1') {
-	    	    var p = req.responseText.indexOf(':');
-	    	    itemorderhash = req.responseText.substring(2,p);
-		    document.getElementById(target).innerHTML='';
-		    document.getElementById('recchg').disabled = true;
-		    window.onbeforeunload = null;
-		    setlinksdisp("");
-		    document.getElementById("qviewtree").innerHTML = req.responseText.substring(p+1);
-		    sortIt.haschanged = false;      
-	    } else {
-		    document.getElementById(target).innerHTML=req.responseText.substring(2);
-	    }
-    } else { 
-	    document.getElementById(target).innerHTML=" Couldn't save changes:\n"+ req.status + "\n" +req.statusText; 
-    } 
-  } 
-}
-
 function setlinksdisp(disp) {
 	var el = document.getElementsByTagName("span");
 	for (var i=0; i<el.length; i++) {
@@ -387,13 +378,13 @@ function editinplace(el) {
 		var inputh = document.createElement("input");
 		inputh.id = 'input'+el.id;
 		inputh.type = "hidden";
-		el.parentNode.insertBefore(inputh,el);	
+		el.parentNode.insertBefore(inputh,el);
 		var inputt  = document.createElement("input");
 		inputt.id = 'inputt'+el.id;
 		inputt.type = "text";
 		inputt.size = 60;
 		inputt.onblur = editinplaceun;
-		el.parentNode.insertBefore(inputt,el);	
+		el.parentNode.insertBefore(inputt,el);
 	} else {
 		inputt = document.getElementById('inputt'+el.id);
 		inputt.style.display = "inline";

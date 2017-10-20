@@ -484,59 +484,45 @@ if (!defined('__CSRF_PROTECTOR__')) {
 		}
 
 		/*
+		* Function: get_csrf_input_tag
+		*
+		* Return:
+		* string, of HTML input tag containing CSRFP token
+		*/
+		private static function get_csrf_input_tag()
+		{
+			$curtoken = $_SESSION[self::$config['CSRFP_TOKEN']][count($_SESSION[self::$config['CSRFP_TOKEN']])-1];
+			$out = '<input type="hidden" name="'.self::$config['CSRFP_TOKEN'].'" ';
+			$out .= 'class="'.self::$config['CSRFP_TOKEN'].'" value="'.$curtoken.'" />';
+			return $out;
+		}
+
+		/*
+		 * Function: output_header_code
+		 * outputs the token information into the <head> tag
+		 *
+		 * REturn:
+		 * string, for inclusion in <head>
+		 */
+		public static function output_header_code()
+		{
+			$out = '<script type="text/javascript" src="' . self::$config['jsUrl'] . '"></script>';
+			$out .= '<script type="text/javascript">
+				CSRFP.CSRFP_TOKEN = "'.self::$config['CSRFP_TOKEN'].'";
+				CSRFP.checkForUrls = '.json_encode(self::$config['verifyGetFor']).';
+			</script>';
+
+			return $out;
+		}
+
+		/*
 		 * Function: ob_handler
-		 * Rewrites <form> on the fly to add CSRF tokens to them. This can also
-		 * inject our JavaScript library.
-		 *
-		 * Parameters:
-		 * $buffer - output buffer to which all output are stored
-		 * $flag - INT
-		 *
-		 * Return:
-		 * string, complete output buffer
+		 * Rewrites <form> on the fly to add CSRF tokens to them.
 		 */
 		public static function ob_handler($buffer, $flags)
 		{
-			// Even though the user told us to rewrite, we should do a quick heuristic
-		    // to check if the page is *actually* HTML. We don't begin rewriting until
-		    // we hit the first <html tag.
-		    if (!self::$isValidHTML) {
-		        // not HTML until proven otherwise
-		        if (stripos($buffer, '<html') !== false) {
-		            self::$isValidHTML = true;
-		        } else {
-		            return $buffer;
-		        }
-		    }
-
-		    // TODO: statically rewrite all forms as well so that if a form is submitted
-		    // before the js has worked on, it will still have token to send
-		    // @priority: medium @labels: important @assign: mebjas
-		    // @deadline: 1 week
-
-		    //add a <noscript> message to outgoing HTML output,
-		    //informing the user to enable js for CSRFProtector to work
-		    //best section to add, after <body> tag
-		    $buffer = preg_replace("/<body[^>]*>/", "$0 <noscript>" .self::$config['disabledJavascriptMessage'] .
-		    	"</noscript>", $buffer);
-
-		    $hiddenInput = '<input type="hidden" id="' . CSRFP_FIELD_TOKEN_NAME.'" value="'
-		    				.self::$config['CSRFP_TOKEN'] .'">' .PHP_EOL;
-
-		    $hiddenInput .= '<input type="hidden" id="' .CSRFP_FIELD_URLS .'" value=\''
-		    				.json_encode(self::$config['verifyGetFor']) .'\'>';
-
-		    //implant hidden fields with check url information for reading in javascript
-	        $buffer = str_ireplace('</body>', $hiddenInput . '</body>', $buffer);
-
-		    //implant the CSRFGuard js file to outgoing script
-		    $script = '<script type="text/javascript" src="' . self::$config['jsUrl'] . '"></script>' . PHP_EOL;
-		    $buffer = str_ireplace('</body>', $script . '</body>', $buffer, $count);
-
-		    if (!$count)
-		        $buffer .= $script;
-
-		    return $buffer;
+			$buffer = str_replace('</form>', self::get_csrf_input_tag().'</form>', $buffer);
+			return $buffer;
 		}
 
 		/*
@@ -560,6 +546,7 @@ if (!defined('__CSRF_PROTECTOR__')) {
 			$log['timestamp'] = time();
 			$log['HOST'] = $_SERVER['HTTP_HOST'];
 			$log['REQUEST_URI'] = $_SERVER['REQUEST_URI'];
+			$log['APACHE_HEADERS'] = apache_response_headers();
 			$log['requestType'] = self::$requestType;
 
 			if (self::$requestType === "GET")

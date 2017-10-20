@@ -21,7 +21,7 @@ return array(
 	"errorRedirectionPage" => "",
 	"customErrorMessage" => "Invalid or missing CSRF token.",
 	"jsPath" => "../js/csrfprotector.js",
-	"jsUrl" => $GLOBALS['basesiteurl'] . "/csrfp/js/csrfprotector.js",
+	"jsUrl" => $GLOBALS['basesiteurl'] . "/csrfp/js/csrfprotector.js?v=102017",
 	"tokenLength" => 10,
 	"cookieConfig" => array(
 		"path" => ($GLOBALS['imasroot']==''?'/':$GLOBALS['imasroot']),

@@ -618,7 +618,7 @@ if ($overwriteBody==1) {
 		   echo 'var itemorderhash="'.md5(serialize($items)).'";';
 		   echo "</script>";
 		   echo "<script src=\"$imasroot/javascript/mootools.js\"></script>";
-		   echo "<script src=\"$imasroot/javascript/nested1.js?v=011917\"></script>";
+		   echo "<script src=\"$imasroot/javascript/nested1.js?v=102017\"></script>";
 		   echo '<p><button type="button" onclick="quickviewexpandAll()">'._("Expand All").'</button> ';
 		   echo '<button type="button" onclick="quickviewcollapseAll()">'._("Collapse All").'</button></p>';
 
