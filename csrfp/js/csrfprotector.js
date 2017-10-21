@@ -16,6 +16,7 @@ var CSRFP_FIELD_URLS = 'csrfp_hidden_data_urls';
 
 var CSRFP = {
 	CSRFP_TOKEN: 'csrfp_token',
+	CSRFP_TOKEN_VALUE: 0,
 	/**
 	 * Array of patterns of url, for which csrftoken need to be added
 	 * In case of GET request also, provided from server
@@ -49,13 +50,15 @@ var CSRFP = {
 	 * @return: string, csrftoken retrieved from cookie
 	 */
 	_getAuthKey: function() {
-		var re = new RegExp(CSRFP.CSRFP_TOKEN +"=([^;]+)(;|$)");
+		/*var re = new RegExp(CSRFP.CSRFP_TOKEN +"=([^;]+)(;|$)");
 		var RegExpArray = re.exec(document.cookie);
 
 		if (RegExpArray === null) {
 			return false;
 		}
 		return RegExpArray[1];
+		*/
+		return CSRFP.CSRFP_TOKEN_VALUE;
 	},
 	/**
 	 * Function to get domain of any url

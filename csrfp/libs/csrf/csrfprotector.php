@@ -198,10 +198,10 @@ if (!defined('__CSRF_PROTECTOR__')) {
 			self::$tokenHeaderKey = str_replace('-', '_', self::$tokenHeaderKey);
 
 			// load parameters for setcookie method
-			if (!isset(self::$config['cookieConfig']))
+			/*if (!isset(self::$config['cookieConfig']))
 				self::$config['cookieConfig'] = array();
 			self::$cookieConfig = new cookieConfig(self::$config['cookieConfig']);
-
+*/
 			// Validate the config if everythings filled out
 			// TODO: collect all missing values and throw exception together
 			foreach (self::$requiredConfigurations as $value) {
@@ -223,15 +223,18 @@ if (!defined('__CSRF_PROTECTOR__')) {
 			if (!defined('__TESTING_CSRFP__'))
 				ob_start('csrfProtector::ob_handler');
 
-			if (!isset($_COOKIE[self::$config['CSRFP_TOKEN']])
+			/*if (!isset($_COOKIE[self::$config['CSRFP_TOKEN']])
 				|| !isset($_SESSION[self::$config['CSRFP_TOKEN']])
 				|| !is_array($_SESSION[self::$config['CSRFP_TOKEN']])
 				|| !in_array($_COOKIE[self::$config['CSRFP_TOKEN']],
 					$_SESSION[self::$config['CSRFP_TOKEN']]))
 				self::refreshToken();
-
+				*/
+			if (!isset($_SESSION[self::$config['CSRFP_TOKEN']])) {
+				self::refreshToken();
+			}
 			// Set protected by CSRF Protector header
-			header('X-CSRF-Protection: OWASP CSRFP 1.0.0');
+			//header('X-CSRF-Protection: OWASP CSRFP 1.0.0');
 		}
 
 		/*
@@ -426,7 +429,7 @@ if (!defined('__CSRF_PROTECTOR__')) {
 			// set token to session for server side validation
 			array_push($_SESSION[self::$config['CSRFP_TOKEN']], $token);
 
-			// set token to cookie for client side processing
+			/*// set token to cookie for client side processing
 			if (self::$cookieConfig === null) {
 				if (!isset(self::$config['cookieConfig']))
 					self::$config['cookieConfig'] = array();
@@ -439,6 +442,7 @@ if (!defined('__CSRF_PROTECTOR__')) {
 				self::$cookieConfig->path,
 				self::$cookieConfig->domain,
 				(bool) self::$cookieConfig->secure);
+			*/
 		}
 
 		/*
@@ -506,10 +510,12 @@ if (!defined('__CSRF_PROTECTOR__')) {
 		 */
 		public static function output_header_code()
 		{
-			$out = '<script type="text/javascript" src="' . self::$config['jsUrl'] . '"></script>';
+			$curtoken = $_SESSION[self::$config['CSRFP_TOKEN']][count($_SESSION[self::$config['CSRFP_TOKEN']])-1];
+			$out = '<script type="text/javascript" src="' . self::$config['jsUrl'] . '?v=102017nc"></script>';
 			$out .= '<script type="text/javascript">
 				CSRFP.CSRFP_TOKEN = "'.self::$config['CSRFP_TOKEN'].'";
 				CSRFP.checkForUrls = '.json_encode(self::$config['verifyGetFor']).';
+				CSRFP.CSRFP_TOKEN_VALUE = "'.$curtoken.'";
 			</script>';
 
 			return $out;
