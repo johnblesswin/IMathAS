@@ -511,7 +511,7 @@ if (!defined('__CSRF_PROTECTOR__')) {
 		public static function output_header_code()
 		{
 			$curtoken = $_SESSION[self::$config['CSRFP_TOKEN']][count($_SESSION[self::$config['CSRFP_TOKEN']])-1];
-			$out = '<script type="text/javascript" src="' . self::$config['jsUrl'] . '?v=102017nc"></script>';
+			$out = '<script type="text/javascript" src="' . self::$config['jsUrl'] . '"></script>';
 			$out .= '<script type="text/javascript">
 				CSRFP.CSRFP_TOKEN = "'.self::$config['CSRFP_TOKEN'].'";
 				CSRFP.checkForUrls = '.json_encode(self::$config['verifyGetFor']).';
