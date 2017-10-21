@@ -547,6 +547,8 @@ if (!defined('__CSRF_PROTECTOR__')) {
 			$log['HOST'] = $_SERVER['HTTP_HOST'];
 			$log['REQUEST_URI'] = $_SERVER['REQUEST_URI'];
 			$log['APACHE_HEADERS'] = apache_response_headers();
+			$log['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
+			$log['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'];
 			$log['requestType'] = self::$requestType;
 
 			if (self::$requestType === "GET")
