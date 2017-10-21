@@ -270,7 +270,7 @@ if (!defined('__CSRF_PROTECTOR__')) {
 					//action in case of failed validation
 					self::failedValidationAction();
 				} else {
-					self::refreshToken();	//refresh token for successfull validation
+					//self::refreshToken();	//refresh token for successfull validation
 				}
 			} else if (!static::isURLallowed()) {
 				//currently for same origin only
@@ -282,7 +282,7 @@ if (!defined('__CSRF_PROTECTOR__')) {
 					//action in case of failed validation
 					self::failedValidationAction();
 				} else {
-					self::refreshToken();	//refresh token for successfull validation
+					//self::refreshToken();	//refresh token for successfull validation
 				}
 			}
 		}
