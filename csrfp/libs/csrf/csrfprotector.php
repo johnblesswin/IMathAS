@@ -552,9 +552,11 @@ if (!defined('__CSRF_PROTECTOR__')) {
 			$log['timestamp'] = time();
 			$log['HOST'] = $_SERVER['HTTP_HOST'];
 			$log['REQUEST_URI'] = $_SERVER['REQUEST_URI'];
-			$log['APACHE_HEADERS'] = apache_response_headers();
+			$log['APACHE_HEADERS'] = apache_request_headers();
 			$log['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
 			$log['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'];
+			$curtoken = $_SESSION[self::$config['CSRFP_TOKEN']][count($_SESSION[self::$config['CSRFP_TOKEN']])-1];
+			$log['session_csrfp_token'] = $curtoken;
 			$log['requestType'] = self::$requestType;
 
 			if (self::$requestType === "GET")
