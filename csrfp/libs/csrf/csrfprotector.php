@@ -230,7 +230,9 @@ if (!defined('__CSRF_PROTECTOR__')) {
 					$_SESSION[self::$config['CSRFP_TOKEN']]))
 				self::refreshToken();
 				*/
-			if (!isset($_SESSION[self::$config['CSRFP_TOKEN']])) {
+			if (!isset($_SESSION[self::$config['CSRFP_TOKEN']])
+					|| !is_array($_SESSION[self::$config['CSRFP_TOKEN']])
+					|| count($_SESSION[self::$config['CSRFP_TOKEN']])==0) {
 				self::refreshToken();
 			}
 			// Set protected by CSRF Protector header
