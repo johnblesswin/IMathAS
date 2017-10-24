@@ -3,17 +3,10 @@
 //(c) 2006 David Lippman
 
  header('P3P: CP="ALL CUR ADM OUR"');
-
+ 
  $curdir = rtrim(dirname(__FILE__), '/\\');
  require("i18n/i18n.php");
- if (isset($sessionpath) && $sessionpath!='') { session_save_path($sessionpath);}
- ini_set('session.gc_maxlifetime',86400);
- ini_set('auto_detect_line_endings',true);
 
- $hostparts = explode('.',Sanitize::domainNameWithPort($_SERVER['HTTP_HOST']));
- if ($_SERVER['HTTP_HOST'] != 'localhost' && !is_numeric($hostparts[count($hostparts)-1])) {
- 	 session_set_cookie_params(0, '/', '.'.implode('.',array_slice($hostparts,isset($CFG['GEN']['domainlevel'])?$CFG['GEN']['domainlevel']:-2)));
- }
  if (isset($CFG['GEN']['randfunc'])) {
  	 $randf = $CFG['GEN']['randfunc'];
  } else {
