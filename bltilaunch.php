@@ -781,7 +781,7 @@ if ($stm->rowCount()==0) {
 		//DB $query .= "AND org LIKE '$shortorg:%'"; //='{$_SESSION['ltiorg']}'";
 		//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
 		//DB if (mysql_num_rows($result)==0) {
-		$stm = $DBH->prepare('SELECT courseid FROM imas_lti_courses WHERE contextid=:contextid AND org LIKE :org');
+		$stm = $DBH->prepare('SELECT courseid,copiedfrom FROM imas_lti_courses WHERE contextid=:contextid AND org LIKE :org');
 		$stm->execute(array(':contextid'=>$_SESSION['lti_context_id'], ':org'=>"$shortorg:%"));
 		if ($stm->rowCount()==0) {
 			//if instructor, see if the source course is ours
@@ -802,6 +802,10 @@ if ($stm->rowCount()==0) {
 				}
 				if (isset($_POST['docoursecopy']) && $_POST['docoursecopy']=="makecopy") {
 					$copycourse = "yes";
+					$sourcecid = $aidsourcecid;
+				} else if (isset($_POST['docoursecopy']) && $_POST['docoursecopy']=="copyother" && $_POST['othercoursecid']>0) {
+					$copycourse = "yes";
+					$sourcecid = Sanitize::onlyInt($_POST['othercoursecid']);
 				}
 				if ($copycourse=="notify" || $copycourse=="ask") {
 					$_SESSION['userid'] = $userid; //remember me
@@ -809,6 +813,18 @@ if ($stm->rowCount()==0) {
 					$flexwidth = true;
 					require("header.php");
 
+					$query = "SELECT DISTINCT ic.id,ic.name FROM imas_courses AS ic JOIN imas_teachers AS imt ON ic.id=imt.courseid ";
+					$query .= "AND imt.userid=:userid JOIN imas_assessments AS ia ON ic.id=ia.courseid ";
+					$query .= "WHERE ic.ancestors REGEXP :cregex AND ia.ancestors REGEXP :aregex ORDER BY ic.name";
+					$stm = $DBH->prepare($query);
+					$stm->execute(array(
+						':userid'=>$userid, 
+						':cregex'=>'[[:<:]]'.$aidsourcecid.'[[:>:]]', 
+						':aregex'=>'[[:<:]]'.$_SESSION['place_aid'].'[[:>:]]'));
+					$othercourses = array();
+					while ($row = $stm->fetch(PDO::FETCH_NUM)) {
+						$othercourses[$row[0]] = $row[1];
+					}
 					echo "<form method=\"post\" action=\"".$imasroot."/bltilaunch.php\">";
 					if ($copycourse=="ask") {
 						echo "<p>Your LMS course is not yet associated with a course on $installname.  The assignment associated with this
@@ -819,9 +835,16 @@ if ($stm->rowCount()==0) {
 							a copy of the $installname assignments can be made for you automatically and associated with
 							this LMS course.</p>
 							<p>
-							<input name=\"docoursecopy\" type=\"radio\" value=\"useexisting\" checked />Associate this LMS course with my existing course on $installname<br/>
-							<input name=\"docoursecopy\" type=\"radio\" value=\"makecopy\" />Create a copy of my existing course on $installname.
-							</p>
+							<input name=\"docoursecopy\" type=\"radio\" value=\"useexisting\" checked />Associate this LMS course with my existing course (ID $aidsourcecid) on $installname<br/>
+							<input name=\"docoursecopy\" type=\"radio\" value=\"makecopy\" />Create a copy of my existing course (ID $aidsourcecid) on $installname";
+						if (count($othercourses)>0) {
+							echo '<br/><input name="docoursecopy" type="radio" value="copyother" />Create a copy of another course: <select name="othercoursecid">';
+							foreach ($othercourses as $k=>$v) {
+								echo '<option value="'.$k.'">'.Sanitize::encodeStringForDisplay($v).'</option>';
+							}
+							echo '</select>';
+						}
+						echo "	</p>
 							<p>The first option is best if this is your first time using this $installname course.  The second option
 							may be preferrable if you have copied the course in your LMS and want your students records to
 							show in a separate $installname course.</p>
@@ -832,10 +855,18 @@ if ($stm->rowCount()==0) {
 							To use this content, a copy of the assignments will be made for you automatically,
 							and this LMS course will be associated with that copy in $installname.  This will allow you to make changes to the assignments
 							without affecting the original course, and will ensure your student records are housed in your own
-							$installname course.
-							<input name=\"docoursecopy\" type=\"hidden\" value=\"makecopy\" />
-							</p>
-							<p><input type=\"submit\" value=\"Create a copy of the existing course on $installname\"/> (this may take a few moments - please be patient)</p>";
+							$installname course.</p>";
+						if (count($othercourses)>0) {
+							echo "<p><input name=\"docoursecopy\" type=\"radio\" value=\"makecopy\" />Create a copy of the original course (ID $aidsourcecid) on $installname";
+							echo '<br/><input name="docoursecopy" type="radio" value="copyother" />Create a copy of another course: <select name="othercoursecid">';
+							foreach ($othercourses as $k=>$v) {
+								echo '<option value="'.$k.'">'.Sanitize::encodeStringForDisplay($v).'</option>';
+							}
+							echo '</select></p>';
+						} else {
+							echo "<input name=\"docoursecopy\" type=\"hidden\" value=\"makecopy\" />";
+						}
+						echo "<p><input type=\"submit\" value=\"Create a copy on $installname\"/> (this may take a few moments - please be patient)</p>";
 					}
 					echo "</form>";
 					require("footer.php");
@@ -879,7 +910,7 @@ if ($stm->rowCount()==0) {
 				$stm->execute(array(':userid'=>$userid, ':destcid'=>$destcid));
 
 				//DO full course copy
-				$sourcecid = $aidsourcecid;
+				
 				//DB $query = "SELECT useweights,orderby,defaultcat,defgbmode,stugbmode FROM imas_gbscheme WHERE courseid='$sourcecid'";
 				//DB $result = mysql_query($query) or die("Query failed :$query " . mysql_error());
 				//DB $row = mysql_fetch_row($result);
@@ -1008,6 +1039,7 @@ if ($stm->rowCount()==0) {
 				require_once("includes/copyiteminc.php");
 				copyallsub($items,'0',$newitems,$gbcats);
 				doaftercopy($sourcecid);
+	
 				$itemorder = serialize($newitems);
 				//DB $query = "UPDATE imas_courses SET itemorder='$itemorder',blockcnt='$blockcnt',ancestors='$ancestors',outcomes='$newoutcomearr',latepasshrs='$latepasshrs' WHERE id='$destcid'";
 				//DB mysql_query($query) or die("Query failed : " . mysql_error());
@@ -1037,37 +1069,52 @@ if ($stm->rowCount()==0) {
 				copyrubrics();
 				//DB mysql_query("COMMIT") or die("Query failed :$query " . mysql_error());
 				$DBH->commit();
-
+				$copiedfromcid = $sourcecid;
 			}
 			//DB $query = "INSERT INTO imas_lti_courses (org,contextid,courseid) VALUES ";
 			//DB $query .= "('{$_SESSION['ltiorg']}','{$_SESSION['lti_context_id']}',$destcid)";
-			$query = "INSERT INTO imas_lti_courses (org,contextid,courseid) VALUES ";
-			$query .= "(:org, :contextid, :courseid)";
+			$query = "INSERT INTO imas_lti_courses (org,contextid,courseid,copiedfrom) VALUES ";
+			$query .= "(:org, :contextid, :courseid, :copiedfrom)";
 			$stm = $DBH->prepare($query);
-			$stm->execute(array(':org'=>$_SESSION['ltiorg'], ':contextid'=>$_SESSION['lti_context_id'], ':courseid'=>$destcid));
+			$stm->execute(array(
+				':org'=>$_SESSION['ltiorg'], 
+				':contextid'=>$_SESSION['lti_context_id'], 
+				':courseid'=>$destcid,
+				':copiedfrom'=>($copycourse == "yes")?$sourcecid:0));
 		} else {
 			//DB $destcid = mysql_result($result,0,0);
-			$destcid = $stm->fetchColumn(0);
+			list($destcid, $copiedfromcid) = $stm->fetch(PDO::FETCH_NUM);
 		}
 		if ($destcid==$aidsourcecid) {
 			//aid is in destination course - just make placement
 			$aid = $_SESSION['place_aid'];
 		} else {
-			//aid is in source course.  Let's see if we already copied it.
-			//DB $query = "SELECT id FROM imas_assessments WHERE ancestors REGEXP '^".intval($_SESSION['place_aid'])."[[:>:]]' AND courseid=".intval($destcid);
-			//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
-			//DB if (mysql_num_rows($result)>0) {
-			//DB 	$aid = mysql_result($result,0,0);
+			//aid is in original source course.  Let's see if we already copied it.
+			if ($copiedfromcid == $aidsourcecid) {
+				$anregex = '^([0-9]+:)?'.intval($_SESSION['place_aid']).'[[:>:]]';
+			} else {
+				//need to look up ancestor depth
+				$stm = $DBH->prepare("SELECT ancestors FROM imas_courses WHERE id=?");
+				$stm->execute(array($destcid));
+				$ancestors = explode(',', $stm->fetchColumn(0));
+				$ciddepth = array_search($aidsourcecid, $ancestors);  //so if we're looking for 23, "20,24,23,26" would give 2 here.
+				if ($ciddepth !== false) {
+					//  '^'.intval($copyfromcid).':[0-9]+,   looks for assessments just copied from the $copyfromcid course
+					//  ([0-9]+(:[0-9)+)?,){'.($ciddepth-1).'}   looks for the correct depth (-1 since we already used up one depath in the last part)
+					//  ([0-9]+:)?'.intval($_SESSION['place_aid']).'[[:>:]]'   looks for the correct assessment at that depth
+					$anregex = '^'.intval($copiedfromcid).':[0-9]+,([0-9]+(:[0-9])+)?,){'.($ciddepth-1).'}([0-9]+:)?'.intval($_SESSION['place_aid']).'[[:>:]]';
+				} else {
+					$anregex = '^abc$'; //cause a fail
+				}
+			}
 			$stm = $DBH->prepare("SELECT id FROM imas_assessments WHERE ancestors REGEXP :ancestors AND courseid=:destcid");
-			$stm->execute(array(':ancestors'=>'^'.intval($_SESSION['place_aid']).'[[:>:]]', ':destcid'=>$destcid));
+			$stm->execute(array(':ancestors'=>$anregex, ':destcid'=>$destcid));
 			if ($stm->rowCount()>0) {
 				$aid = $stm->fetchColumn(0);
 			} else {
 				//aid is in source course.  Let's look and see if there's an assessment in destination with the same title.
 				//THIS SHOULD BE REMOVED - only included to accomodate people doing things the wrong way.
-				//DB $query = "SELECT name FROM imas_assessments WHERE id=".intval($_SESSION['place_aid']);
-				//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
-				//DB $sourceassessname = addslashes(mysql_result($result,0,0));
+				//or weird edge cases
 				$stm = $DBH->prepare("SELECT name FROM imas_assessments WHERE id=:id");
 				$stm->execute(array(':id'=>$_SESSION['place_aid']));
 				$sourceassessname = $stm->fetchColumn(0);
