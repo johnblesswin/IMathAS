@@ -1102,7 +1102,7 @@ if ($stm->rowCount()==0) {
 					//  '^'.intval($copyfromcid).':[0-9]+,   looks for assessments just copied from the $copyfromcid course
 					//  ([0-9]+(:[0-9)+)?,){'.($ciddepth-1).'}   looks for the correct depth (-1 since we already used up one depath in the last part)
 					//  ([0-9]+:)?'.intval($_SESSION['place_aid']).'[[:>:]]'   looks for the correct assessment at that depth
-					$anregex = '^'.intval($copiedfromcid).':[0-9]+,([0-9]+(:[0-9])+)?,){'.($ciddepth-1).'}([0-9]+:)?'.intval($_SESSION['place_aid']).'[[:>:]]';
+					$anregex = '^'.intval($copiedfromcid).':[0-9]+,([0-9]+(:[0-9]+)?,){'.($ciddepth-1).'}([0-9]+:)?'.intval($_SESSION['place_aid']).'[[:>:]]';
 				} else {
 					$anregex = '^abc$'; //cause a fail
 				}
@@ -1129,7 +1129,7 @@ if ($stm->rowCount()==0) {
 					$aid = $stm->fetchColumn(0);
 				} else {
 					// no assessment with same title - need to copy assessment from destination to source course
-					require("includes/copyiteminc.php");
+					require_once("includes/copyiteminc.php");
 					//DB $query = "SELECT id FROM imas_items WHERE itemtype='Assessment' AND typeid='{$_SESSION['place_aid']}'";
 					//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
 					//DB if (mysql_num_rows($result)==0) {
@@ -2393,7 +2393,7 @@ if (((count($keyparts)==1 || $_SESSION['lti_keytype']=='gc') && $_SESSION['ltiro
 						$aid = $stm->fetchColumn(0);
 					} else {
 						// no assessment with same title - need to copy assessment from destination to source course
-						require("includes/copyiteminc.php");
+						require_once("includes/copyiteminc.php");
 						//DB $query = "SELECT id FROM imas_items WHERE itemtype='Assessment' AND typeid='{$_SESSION['place_aid'][1]}'";
 						//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
 						//DB if (mysql_num_rows($result)==0) {
