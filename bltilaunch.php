@@ -769,12 +769,12 @@ if ($stm->rowCount()==0) {
 		//DB $query = "SELECT courseid FROM imas_assessments WHERE id='{$_SESSION['place_aid']}'";
 		//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
 		//DB $aidsourcecid = mysql_result($result,0,0);
-		$stm = $DBH->prepare('SELECT courseid FROM imas_assessments WHERE id=:aid');
+		$stm = $DBH->prepare('SELECT courseid,name FROM imas_assessments WHERE id=:aid');
 		$stm->execute(array(':aid'=>$_SESSION['place_aid']));
-		$aidsourcecid = $stm->fetchColumn(0);
-    if ($aidsourcecid===false) {
-      reporterror("This assignment does not appear to exist anymore");
-    }
+		list($aidsourcecid,$aidsourcename) = $stm->fetch(PDO::FETCH_NUM);
+		if ($aidsourcecid===false) {
+			reporterror("This assignment does not appear to exist anymore");
+		}
 
 		//look to see if we've already linked this context_id with a course
 		//DB $query = "SELECT courseid FROM imas_lti_courses WHERE contextid='{$_SESSION['lti_context_id']}' ";
@@ -1089,42 +1089,84 @@ if ($stm->rowCount()==0) {
 			//aid is in destination course - just make placement
 			$aid = $_SESSION['place_aid'];
 		} else {
+			$foundaid = false;
+			$aidtolookfor = intval($_SESSION['place_aid']);
 			//aid is in original source course.  Let's see if we already copied it.
 			if ($copiedfromcid == $aidsourcecid) {
-				$anregex = '^([0-9]+:)?'.intval($_SESSION['place_aid']).'[[:>:]]';
-			} else {
+				$anregex = '^([0-9]+:)?'.$aidtolookfor.'[[:>:]]';
+				$stm = $DBH->prepare("SELECT id FROM imas_assessments WHERE ancestors REGEXP :ancestors AND courseid=:destcid");
+				$stm->execute(array(':ancestors'=>$anregex, ':destcid'=>$destcid));
+				if ($stm->rowCount()>0) {
+					$aid = $stm->fetchColumn(0);
+					$foundaid = true;
+					//echo "found 1";
+					//exit;
+				}
+			}
+			if (!$foundaid) { //do course ancestor walk-back
 				//need to look up ancestor depth
 				$stm = $DBH->prepare("SELECT ancestors FROM imas_courses WHERE id=?");
 				$stm->execute(array($destcid));
 				$ancestors = explode(',', $stm->fetchColumn(0));
 				$ciddepth = array_search($aidsourcecid, $ancestors);  //so if we're looking for 23, "20,24,23,26" would give 2 here.
 				if ($ciddepth !== false) {
-					//  '^'.intval($copyfromcid).':[0-9]+,   looks for assessments just copied from the $copyfromcid course
-					//  ([0-9]+(:[0-9)+)?,){'.($ciddepth-1).'}   looks for the correct depth (-1 since we already used up one depath in the last part)
-					//  ([0-9]+:)?'.intval($_SESSION['place_aid']).'[[:>:]]'   looks for the correct assessment at that depth
-					$anregex = '^'.intval($copiedfromcid).':[0-9]+,([0-9]+(:[0-9]+)?,){'.($ciddepth-1).'}([0-9]+:)?'.intval($_SESSION['place_aid']).'[[:>:]]';
-				} else {
-					$anregex = '^abc$'; //cause a fail
+					array_unshift($ancestors, $destcid);  //add current course to front
+					$foundsubaid = true;
+					for ($i=$ciddepth;$i>=0;$i--) {  //starts one course back from aidsourcecid because of the unshift
+						$stm = $DBH->prepare("SELECT id FROM imas_assessments WHERE ancestors REGEXP :ancestors AND courseid=:cid");
+						$stm->execute(array(':ancestors'=>'^([0-9]+:)?'.$aidtolookfor.'[[:>:]]', ':cid'=>$ancestors[$i]));
+						if ($stm->rowCount()>0) {
+							$aidtolookfor = $stm->fetchColumn(0);
+						} else {
+							$foundsubaid = false;
+							break;
+						}
+					}
+					if ($foundsubaid) {
+						$aid = $aidtolookfor;
+						$foundaid = true;
+						//echo "found 2";
+						//exit;
+					}
 				}
 			}
-			$stm = $DBH->prepare("SELECT id FROM imas_assessments WHERE ancestors REGEXP :ancestors AND courseid=:destcid");
-			$stm->execute(array(':ancestors'=>$anregex, ':destcid'=>$destcid));
-			if ($stm->rowCount()>0) {
-				$aid = $stm->fetchColumn(0);
-			} else {
+			if (!$foundaid) { //look for the assessment id anywhere in the ancestors list
+				$anregex = '[[:<:]]'.intval($_SESSION['place_aid']).'[[:>:]]';
+				$stm = $DBH->prepare("SELECT id,name,ancestors FROM imas_assessments WHERE ancestors REGEXP :ancestors AND courseid=:destcid");
+				$stm->execute(array(':ancestors'=>$anregex, ':destcid'=>$destcid));
+				$res = $stm->fetchAll(PDO::FETCH_ASSOC);
+				if (count($res)==1) {  //only one result - we found it
+					$aid = $res[0]['id'];
+					$foundaid = true;
+					//echo "found 3";
+					//exit;
+				}
+				if (!$foundaid && count($res)>0) { //multiple results - look for the identical name
+					foreach ($res as $k=>$row) {
+						$res[$k]['loc'] = strpos($row['ancestors'], $aidtolookfor);
+						if ($row['name']==$aidsourcename) {
+							$aid = $row['id'];
+							$foundaid = true;
+							//echo "found 4";
+							//exit;
+							break;
+						}
+					}
+				}
+				if (!$foundaid && count($res)>0) { //no name match. pick the one with the assessment closest to the start
+					usort($res, function($a,$b) { return $a['loc'] - $b['loc'];});
+					$aid = $res[0]['id'];
+					$foundaid = true;
+					//echo "found 5";
+					//exit;
+				}
+			}
+			if (!$foundaid) {
 				//aid is in source course.  Let's look and see if there's an assessment in destination with the same title.
-				//THIS SHOULD BE REMOVED - only included to accomodate people doing things the wrong way.
-				//or weird edge cases
-				$stm = $DBH->prepare("SELECT name FROM imas_assessments WHERE id=:id");
-				$stm->execute(array(':id'=>$_SESSION['place_aid']));
-				$sourceassessname = $stm->fetchColumn(0);
-
-				//DB $query = "SELECT id FROM imas_assessments WHERE name='$sourceassessname' AND courseid='$destcid'";
-				//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
-				//DB if (mysql_num_rows($result)>0) {
-				//DB $aid = mysql_result($result,0,0);
+				//this handles cases where an assessment was linked in from elsewhere and manually copied
+				
 				$stm = $DBH->prepare("SELECT id FROM imas_assessments WHERE name=:name AND courseid=:courseid");
-				$stm->execute(array(':name'=>$sourceassessname, ':courseid'=>$destcid));
+				$stm->execute(array(':name'=>$aidsourcename, ':courseid'=>$destcid));
 				if ($stm->rowCount()>0) {
 					$aid = $stm->fetchColumn(0);
 				} else {
