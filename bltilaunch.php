@@ -2412,7 +2412,7 @@ if (((count($keyparts)==1 || $_SESSION['lti_keytype']=='gc') && $_SESSION['ltiro
 				//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
 				//DB if (mysql_num_rows($result)>0) {
 				$stm = $DBH->prepare("SELECT id FROM imas_assessments WHERE ancestors REGEXP :ancregex AND courseid=:destcid");
-				$stm->execute(array(':ancregex'=>'^'.intval($_SESSION['place_aid'][1]).'[[:>:]]', ':destcid'=>$destcid));
+				$stm->execute(array(':ancregex'=>'^([0-9]+:)?'.intval($_SESSION['place_aid'][1]).'[[:>:]]', ':destcid'=>$destcid));
 				if ($stm->rowCount()>0) {
 					//DB $aid = mysql_result($result,0,0);
 					$aid = $stm->fetchColumn(0);
