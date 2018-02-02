@@ -62,20 +62,20 @@
 		//DB $query = "SELECT deffeedback,startdate,enddate,reviewdate,shuffle,itemorder,password,avail,isgroup,groupsetid,deffeedbacktext,timelimit,courseid,istutorial,name,allowlate,displaymethod FROM imas_assessments WHERE id='$aid'";
 		//DB $result = mysql_query($query) or die("Query failed : $query: " . mysql_error());
 		//DB $adata = mysql_fetch_array($result, MYSQL_ASSOC);
-		$stm = $DBH->prepare("SELECT deffeedback,startdate,enddate,reviewdate,shuffle,itemorder,password,avail,isgroup,groupsetid,deffeedbacktext,timelimit,courseid,istutorial,name,allowlate,displaymethod,id FROM imas_assessments WHERE id=:id");
+		$stm = $DBH->prepare("SELECT deffeedback,startdate,enddate,reviewdate,shuffle,itemorder,password,avail,isgroup,groupsetid,deffeedbacktext,timelimit,courseid,istutorial,name,allowlate,displaymethod,id,date_by_lti FROM imas_assessments WHERE id=:id");
 		$stm->execute(array(':id'=>$aid));
 		$adata = $stm->fetch(PDO::FETCH_ASSOC);
 		$now = time();
 		$assessmentclosed = false;
 
-		if ($adata['avail']==0 && !isset($teacherid) && !isset($tutorid)) {
+		if (($adata['avail']==0 || $adata['date_by_lti']>2) && !isset($teacherid) && !isset($tutorid)) {
 			$assessmentclosed = true;
 		}
 		$canuselatepass = false;
 
 		if (!$actas) {
 			if ($isRealStudent) {
-				$stm2 = $DBH->prepare("SELECT startdate,enddate,islatepass FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
+				$stm2 = $DBH->prepare("SELECT startdate,enddate,islatepass,is_lti FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
 				$stm2->execute(array(':userid'=>$userid, ':assessmentid'=>$aid));
 				$row = $stm2->fetch(PDO::FETCH_NUM);
 				if ($row!=null) {
@@ -92,8 +92,8 @@
 						}
 					}
 				} else { //inside exception dates exception
-					if ($adata['enddate']<$now) { //exception is for past-due-date
-						$inexception = true; //only trigger if past due date for penalty
+					if ($adata['enddate']<$now && ($row[3]==0 || $row[2]>0)) { //exception is for past-due-date
+						$inexception = true; //only trigger if past due date for penalty (and not a regular lti-set exception)
 					}
 				}
 				$exceptionduedate = $row[1];
@@ -108,7 +108,7 @@
 					}
 				}
 			}
-			if (($assessmentclosed || $isreview) && $adata['avail']>0 && $isRealStudent) {
+			if (($assessmentclosed || $isreview) && $adata['avail']>0 && $adata['date_by_lti']<3 && $isRealStudent) {
 				if ($latepasses>0) {
 					list($useexception, $canundolatepass, $canuselatepass) = $exceptionfuncs->getCanUseAssessException($row, $adata);
 				}
@@ -131,7 +131,7 @@
 			require("header.php");
 			showEnterAssessmentBreadcrumbs($adata['name']);
 			echo '<p>', _('This assessment is closed'), '</p>';
-			if ($adata['avail']>0) {
+			if ($adata['avail']>0 && $adata['date_by_lti']<3) {
 
 				if (!$actas && $canuselatepass) {
 					echo "<p><a href=\"$imasroot/course/redeemlatepass.php?cid=$cid&aid=$aid\">", _('Use LatePass'), "</a></p>";
@@ -669,20 +669,22 @@
 	$now = time();
 	//check for dates - kick out student if after due date
 	//if (!$isteacher) {
-	if ($testsettings['avail']==0 && !$isteacher) {
+	if (($testsettings['avail']==0 || $testsettings['date_by_lti']>2) && !$isteacher) {
 		echo _('Assessment is closed');
 		leavetestmsg();
 		exit;
 	}
+	$ltiexception = false;
 	if (!$actas) {
 		//DB $query = "SELECT startdate,enddate,islatepass,exceptionpenalty FROM imas_exceptions WHERE userid='$userid' AND assessmentid='{$line['assessmentid']}' AND itemtype='A'";
 		//DB $result2 = mysql_query($query) or die("Query failed : " . mysql_error());
 		//DB $row = mysql_fetch_row($result2);
-		$stm2 = $DBH->prepare("SELECT startdate,enddate,islatepass,exceptionpenalty FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
+		$stm2 = $DBH->prepare("SELECT startdate,enddate,islatepass,exceptionpenalty,is_lti FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
 		$stm2->execute(array(':userid'=>$userid, ':assessmentid'=>$line['assessmentid']));
 		$exceptionrow = $stm2->fetch(PDO::FETCH_NUM);
 		if ($exceptionrow != null) {
 			$useexception = $exceptionfuncs->getCanUseAssessException($exceptionrow, $testsettings, true);
+			$ltiexception = ($row[4]>0 && $row[2]==0);
 		}
 		if ($exceptionrow!=null && $useexception) {
 			if ($now<$exceptionrow[0] || $exceptionrow[1]<$now) { //outside exception dates
@@ -696,7 +698,7 @@
 					}
 				}
 			} else { //in exception
-				if ($testsettings['enddate']<$now) { //exception is for past-due-date
+				if ($testsettings['enddate']<$now && ($row[4]==0 || $row[2]>0)) { //exception is for past-due-date
 					$inexception = true;
 					$exceptiontype = $exceptionrow[2];
 					if ($exceptionrow[3]!==null) {
@@ -722,7 +724,7 @@
 		//DB $query = "SELECT startdate,enddate FROM imas_exceptions WHERE userid='{$sessiondata['actas']}' AND assessmentid='{$line['assessmentid']}' AND itemtype='A'";
 		//DB $result2 = mysql_query($query) or die("Query failed : " . mysql_error());
 		//DB $row = mysql_fetch_row($result2);
-		$stm2 = $DBH->prepare("SELECT startdate,enddate,islatepass FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
+		$stm2 = $DBH->prepare("SELECT startdate,enddate,islatepass,is_lti FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
 		$stm2->execute(array(':userid'=>$sessiondata['actas'], ':assessmentid'=>$line['assessmentid']));
 		$row = $stm2->fetch(PDO::FETCH_NUM);
 		if ($row!=null) {
@@ -730,6 +732,7 @@
 			if ($useexception) {
 				$exceptionduedate = $row[1];
 			}
+			$ltiexception = ($row[3]>0 && $row[2]==0);
 		}
 	}
 
@@ -1465,7 +1468,7 @@ if (!isset($_REQUEST['embedpostback'])) {
 	}
 	if (!$isreview && !$superdone && $testsettings['displaymethod']!="LivePoll") {
 		$duetimenote = '';
-		if ($exceptionduedate > 0) {
+		if ($exceptionduedate > 0 && !$ltiexception) {
 			$timebeforedue = $exceptionduedate - time();
 			if ($timebeforedue>0 && ($testsettings['enddate'] - time()) < 0) { //past original due date
 				$duetimenote .= sprintf(_('This assignment is past the original due date of %s.'), tzdate('D m/d/Y g:i a',$testsettings['enddate'])).' ';

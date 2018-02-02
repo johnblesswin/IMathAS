@@ -612,6 +612,13 @@ if (isset($_GET['launch'])) {
 	if (isset($_REQUEST['selection_directive']) && $_REQUEST['selection_directive']=='select_link') {
 		$_SESSION['selection_return'] = $_REQUEST['launch_presentation_return_url'];
 	}
+	unset($_SESSION['lti_duedate']);
+	if (isset($_REQUEST['custom_canvas_assignment_due_at'])) {
+		$duedate = strtotime($_REQUEST['custom_canvas_assignment_due_at']);
+		if ($duedate !== false) {
+			$_SESSION['lti_duedate'] = $duedate;
+		}
+	}
 
 	//look if we know this user
 	$orgparts = explode(':',$ltiorg);  //THIS was added to avoid issues when LMS GUID change, while still storing it
@@ -1214,13 +1221,19 @@ if ($linkparts[0]=='cid') {
 	//DB $query = "SELECT courseid,startdate,enddate,reviewdate,avail,ltisecret FROM imas_assessments WHERE id='$aid'";
 	//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
 	//DB $line = mysql_fetch_array($result, MYSQL_ASSOC);
-	$stm = $DBH->prepare("SELECT id,courseid,startdate,enddate,reviewdate,avail,ltisecret,allowlate FROM imas_assessments WHERE id=:id");
+	$stm = $DBH->prepare("SELECT id,courseid,startdate,enddate,reviewdate,avail,ltisecret,allowlate,date_by_lti FROM imas_assessments WHERE id=:id");
 	$stm->execute(array(':id'=>$aid));
 	$line = $stm->fetch(PDO::FETCH_ASSOC);
-  if ($line===false) {
-    reporterror("This assignment does not appear to exist anymore");
-  }
+	if ($line===false) {
+		reporterror("This assignment does not appear to exist anymore");
+	}
 	$cid = $line['courseid'];
+	if (isset($_SESSION['lti_duedate']) && $line['date_by_lti']==1) { //no default due date set yet
+		$stm = $DBH->prepare("UPDATE imas_assessments SET enddate=:enddate,avail=1,date_by_lti=2 WHERE id=:id")
+		$stm->execute(array(':enddate'=>$_SESSION['lti_duedate'], ':id'=>$aid));
+		$line['enddate'] = $_SESSION['lti_duedate'];
+	}
+	
 	if ($_SESSION['ltirole']!='instructor') {
 		//if ($line['avail']==0 || $now>$line['enddate'] || $now<$line['startdate']) {
 		//	reporterror("This assessment is closed");
@@ -1231,14 +1244,28 @@ if ($linkparts[0]=='cid') {
 		//DB $query = "SELECT startdate,enddate FROM imas_exceptions WHERE userid='$userid' AND assessmentid='$aid'";
 		//DB $result2 = mysql_query($query) or die("Query failed : " . mysql_error());
 		//DB $row = mysql_fetch_row($result2);
-		$stm = $DBH->prepare("SELECT startdate,enddate,islatepass FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
+		$stm = $DBH->prepare("SELECT startdate,enddate,islatepass,is_lti FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
 		$stm->execute(array(':userid'=>$userid, ':assessmentid'=>$aid));
 		$exceptionrow = $stm->fetch(PDO::FETCH_NUM);
 		$useexception = false;
 		if ($exceptionrow!=null) {
+			//have exception.  Update using lti_duedate if needed
+			if (isset($_SESSION['lti_duedate']) && $_SESSION['lti_duedate']!=$exceptionrow[1]) {
+				//if new due date is later, or no latepass used, then update
+				if ($exceptionrow[2]==0 || $_SESSION['lti_duedate']>$exceptionrow[1]) {
+					$stm = $DBH->prepare("UPDATE imas_exceptions SET enddate=:enddate,is_lti=1,islatepass=0 WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
+					$stm->execute(array(':enddate'=>$_SESSION['lti_duedate'], ':userid'=>$userid, ':assessmentid'=>$aid));
+				}
+			}
 			require_once("./includes/exceptionfuncs.php");
 			$exceptionfuncs = new ExceptionFuncs($userid, $cid, true);
 			$useexception = $exceptionfuncs->getCanUseAssessException($exceptionrow, $line, true);
+		} else if ($line['date_by_lti']==2 && $line['enddate']!=$_SESSION['lti_duedate']) {
+			//default dates already set by LTI, and users's date doesn't match - create new exception
+			$exceptionrow = array($now, $_SESSION['lti_duedate'], 0, 1);
+			$stm = $DBH->prepare("INSERT INTO imas_exceptions (startdate,enddate,islatepass,is_lti,userid,assessmentid,itemtype) VALUES (?,?,?,?,?,?,'A')");
+			$stm->execute(array_merge($exceptionrow, array($userid, $aid)));
+			$useexception = true;
 		}
 		if ($exceptionrow!=null && $useexception) {
 			if ($now<$exceptionrow[0] || $exceptionrow[1]<$now) { //outside exception dates
@@ -1248,7 +1275,7 @@ if ($linkparts[0]=='cid') {
 					//reporterror("This assessment is closed");
 				}
 			} else { //inside exception dates exception
-				if ($line['enddate']<$now) { //exception is for past-due-date
+				if ($line['enddate']<$now && ($exceptionrow[3]==0 || $exceptionrow[2]>0)) { //exception is for past-due-date
 					$inexception = true; //only trigger if past due date for penalty
 				}
 			}
