@@ -152,6 +152,23 @@ class ExceptionFuncs {
 		removed from below:
 			 && !in_array($adata['id'],$this->timelimitup)
 		*/
+		
+		if ($adata['allowlate']%10==1) {
+			$latepassesAllowed = 10000000;  //unlimited
+		} else {
+			$latepassesAllowed = $adata['allowlate']%10-1;
+		}
+		if (!in_array($adata['id'],$this->viewedassess) && $this->latepasses>0 && $this->isstu) { //basic checks
+			if ($now<$adata['enddate'] && $latepassesAllowed > $latepasscnt) { //before due date and use is allowed
+				$canuselatepass = true;
+			} else if ($now>$adata['enddate'] && $adata['allowlate']>10) { //after due date and allows use after due date
+				$latepassesNeededToExtend = ceil(($now - $adata['enddate'])/($this->latepasshrs*3600) - .01);
+				if ($latepassesAllowed >= $latepasscnt + $latepassesNeededToExtend) {
+					$canuselatepass = true;
+				}
+			}
+		}
+		/**old version
 		if (($adata['allowlate']%10==1 || $adata['allowlate']%10-1>$latepasscnt) && !in_array($adata['id'],$this->viewedassess) && $this->latepasses>0 && $this->isstu) {
 			if ($now>$adata['enddate'] && $adata['allowlate']>10 && ($now - $adata['enddate'])<$this->latepasshrs*3600) {
 				$canuselatepass = true;
@@ -159,6 +176,7 @@ class ExceptionFuncs {
 				$canuselatepass = true;
 			}
 		}
+		*/
 		return $canuselatepass;
 	}
 
