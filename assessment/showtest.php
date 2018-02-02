@@ -679,12 +679,12 @@
 		//DB $query = "SELECT startdate,enddate,islatepass,exceptionpenalty FROM imas_exceptions WHERE userid='$userid' AND assessmentid='{$line['assessmentid']}' AND itemtype='A'";
 		//DB $result2 = mysql_query($query) or die("Query failed : " . mysql_error());
 		//DB $row = mysql_fetch_row($result2);
-		$stm2 = $DBH->prepare("SELECT startdate,enddate,islatepass,exceptionpenalty,is_lti FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
+		$stm2 = $DBH->prepare("SELECT startdate,enddate,islatepass,is_lti,exceptionpenalty FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
 		$stm2->execute(array(':userid'=>$userid, ':assessmentid'=>$line['assessmentid']));
 		$exceptionrow = $stm2->fetch(PDO::FETCH_NUM);
 		if ($exceptionrow != null) {
 			$useexception = $exceptionfuncs->getCanUseAssessException($exceptionrow, $testsettings, true);
-			$ltiexception = ($row[4]>0 && $row[2]==0);
+			$ltiexception = ($row[3]>0 && $row[2]==0);
 		}
 		if ($exceptionrow!=null && $useexception) {
 			if ($now<$exceptionrow[0] || $exceptionrow[1]<$now) { //outside exception dates
@@ -698,11 +698,11 @@
 					}
 				}
 			} else { //in exception
-				if ($testsettings['enddate']<$now && ($row[4]==0 || $row[2]>0)) { //exception is for past-due-date
+				if ($testsettings['enddate']<$now && ($row[3]==0 || $row[2]>0)) { //exception is for past-due-date
 					$inexception = true;
 					$exceptiontype = $exceptionrow[2];
-					if ($exceptionrow[3]!==null) {
-						$testsettings['exceptionpenalty'] = $exceptionrow[3];
+					if ($exceptionrow[4]!==null) {
+						$testsettings['exceptionpenalty'] = $exceptionrow[4];
 					}
 				}
 			}
@@ -1468,9 +1468,9 @@ if (!isset($_REQUEST['embedpostback']) && empty($_POST['backgroundsaveforlater']
 	}
 	if (!$isreview && !$superdone && $testsettings['displaymethod']!="LivePoll") {
 		$duetimenote = '';
-		if ($exceptionduedate > 0 && !$ltiexception) {
+		if ($exceptionduedate > 0) {
 			$timebeforedue = $exceptionduedate - time();
-			if ($timebeforedue>0 && ($testsettings['enddate'] - time()) < 0) { //past original due date
+			if ($timebeforedue>0 && ($testsettings['enddate'] - time()) < 0 && !$ltiexception) { //past original due date
 				$duetimenote .= sprintf(_('This assignment is past the original due date of %s.'), tzdate('D m/d/Y g:i a',$testsettings['enddate'])).' ';
 				if ($exceptiontype>0) {
 					$duetimenote .= _('You have used a LatePass');
@@ -1505,10 +1505,12 @@ if (!isset($_REQUEST['embedpostback']) && empty($_POST['backgroundsaveforlater']
 				$duetimenote .= _('Due') . " " . tzdate('D m/d/Y g:i a',$testsettings['enddate']);
 			}
 		} else {
-			if ($testsettings['enddate']==2000000000) {
+			if ($exceptionduedate > 0) {
+				if ($exceptionduedate < 2000000000) {
+					$duetimenote .= _('Due') . " " . tzdate('D m/d/Y g:i a',$exceptionduedate);
+				}
+			} else if ($testsettings['enddate']==2000000000) {
 				$duetimenote .= '';
-			} else if ($exceptionduedate > 0) {
-				$duetimenote .= _('Due') . " " . tzdate('D m/d/Y g:i a',$exceptionduedate);
 			} else {
 				$duetimenote .= _('Due') . " " . tzdate('D m/d/Y g:i a',$testsettings['enddate']);
 			}

@@ -84,7 +84,7 @@ class ExceptionFuncs {
 	}
 
 	//$exception should be from imas_exceptions, and be null, or
-	//   array(startdate,enddate,islatepass)
+	//   array(startdate,enddate,islatepass,is_lti)
 	//$adata should be associative array from imas_assessments including
 	//   startdate, enddate, allowlate, id
 	//returns array(useexception, canundolatepass, canuselatepass)
@@ -94,7 +94,11 @@ class ExceptionFuncs {
 		$canundolatepass = false;
 
 		$useexception = ($exception!==null && $exception!==false); //use by default
-		if ($exception!==null && $exception[2]>0 && $adata['enddate']>$exception[1]) {
+		if ($exception!==null && $exception!==false && $exception[2]==0 && !empty($exception[3])) {
+			//is LTI-set and not a latepass - use the exception
+			//TODO:  Make sure using exception[3] isn't going to conflict anywhere
+			
+		} else if ($exception!==null && $exception[2]>0 && $adata['enddate']>$exception[1]) {
 			//if latepass and assessment enddate is later than exception enddate, skip exception
 			$useexception = false;
 		} else if ($exception!==null && $exception!==false && $exception[2]==0 && $exception[0]>=$adata['startdate'] && $adata['enddate']>$exception[1]) {
