@@ -853,7 +853,11 @@ function showitems($items,$parent,$inpublic=false) {
 
 			   } else if ($viewall) { //not avail to stu
 				   if ($line['avail']==0) {
-					   $show = _('Hidden');
+				   	   if ($line['date_by_lti']>0 && $line['date_by_lti']<3) {
+				   	   	   $show = _('Waiting for date to be set via LTI');
+				   	   } else {
+				   	   	   $show = _('Hidden');
+				   	   }
 				   } else {
 					   $show = sprintf(_('Available %1$s until %2$s'), $startdate, $enddate);
 					   if ($line['reviewdate']>0 && $line['enddate']!=2000000000) {
