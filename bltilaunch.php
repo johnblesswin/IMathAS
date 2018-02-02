@@ -614,9 +614,13 @@ if (isset($_GET['launch'])) {
 	}
 	unset($_SESSION['lti_duedate']);
 	if (isset($_REQUEST['custom_canvas_assignment_due_at'])) {
-		$duedate = strtotime($_REQUEST['custom_canvas_assignment_due_at']);
-		if ($duedate !== false) {
-			$_SESSION['lti_duedate'] = $duedate;
+		if ($_REQUEST['custom_canvas_assignment_due_at']=='$Canvas.assignment.dueAt.iso8601') {
+			$_SESSION['lti_duedate'] = 2000000000;
+		} else {
+			$duedate = strtotime($_REQUEST['custom_canvas_assignment_due_at']);
+			if ($duedate !== false) {
+				$_SESSION['lti_duedate'] = $duedate;
+			}
 		}
 	}
 
@@ -937,7 +941,7 @@ if ($stm->rowCount()==0) {
 				//DB $query = "SELECT itemorder,ancestors,outcomes,latepasshrs FROM imas_courses WHERE id='$sourcecid'";
 				//DB $result = mysql_query($query) or die("Query failed : $query" . mysql_error());
 				//DB $r = mysql_fetch_row($result);
-				$stm = $DBH->prepare("SELECT itemorder,ancestors,outcomes,latepasshrs FROM imas_courses WHERE id=:id");
+				$stm = $DBH->prepare("SELECT itemorder,ancestors,outcomes,latepasshrs,dates_by_lti FROM imas_courses WHERE id=:id");
 				$stm->execute(array(':id'=>$sourcecid));
 				$r = $stm->fetch(PDO::FETCH_NUM);
 
@@ -945,6 +949,7 @@ if ($stm->rowCount()==0) {
 				$ancestors = $r[1];
 				$outcomesarr = $r[2];
 				$latepasshrs = $r[3];
+				$datesbylti = $r[4];
 				if ($ancestors=='') {
 					$ancestors = intval($sourcecid);
 				} else {
@@ -1018,8 +1023,8 @@ if ($stm->rowCount()==0) {
 				$itemorder = serialize($newitems);
 				//DB $query = "UPDATE imas_courses SET itemorder='$itemorder',blockcnt='$blockcnt',ancestors='$ancestors',outcomes='$newoutcomearr',latepasshrs='$latepasshrs' WHERE id='$destcid'";
 				//DB mysql_query($query) or die("Query failed : " . mysql_error());
-				$stm = $DBH->prepare("UPDATE imas_courses SET itemorder=:itemorder,blockcnt=:blockcnt,ancestors=:ancestors,outcomes=:outcomes,latepasshrs=:latepasshrs WHERE id=:id");
-				$stm->execute(array(':itemorder'=>$itemorder, ':blockcnt'=>$blockcnt, ':ancestors'=>$ancestors, ':outcomes'=>$newoutcomearr, ':latepasshrs'=>$latepasshrs, ':id'=>$destcid));
+				$stm = $DBH->prepare("UPDATE imas_courses SET itemorder=:itemorder,blockcnt=:blockcnt,ancestors=:ancestors,outcomes=:outcomes,latepasshrs=:latepasshrs,dates_by_lti=:datesbylti WHERE id=:id");
+				$stm->execute(array(':itemorder'=>$itemorder, ':blockcnt'=>$blockcnt, ':ancestors'=>$ancestors, ':outcomes'=>$newoutcomearr, ':latepasshrs'=>$latepasshrs, ':datesbylti'=>$datesbylti, ':id'=>$destcid));
 
 				$offlinerubrics = array();
 				/*
@@ -1099,6 +1104,12 @@ if ($stm->rowCount()==0) {
 						reporterror("Error.  Assessment ID '{$_SESSION['place_aid']}' not found.");
 					}
 					$cid = $destcid;
+					
+					$stm = $DBH->prepare("SELECT itemorder,dates_by_lti FROM imas_courses WHERE id=:id");
+					$stm->execute(array(':id'=>$cid));
+					list($items,$datesbylti) = $stm->fetch(PDO::FETCH_NUM);
+					$items = unserialize($items);
+					
 					//DB $newitem = copyitem(mysql_result($result,0,0),array());
 					$newitem = copyitem($stm->fetchColumn(0),array());
 
@@ -1107,14 +1118,7 @@ if ($stm->rowCount()==0) {
 					//DB $aid = mysql_result($result,0,0);
 					$stm = $DBH->prepare("SELECT typeid FROM imas_items WHERE id=:id");
 					$stm->execute(array(':id'=>$newitem));
-					$aid = $stm->fetchColumn(0);
-
-					//DB $query = "SELECT itemorder FROM imas_courses WHERE id='$cid'";
-					//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
-					//DB $items = unserialize(mysql_result($result,0,0));
-					$stm = $DBH->prepare("SELECT itemorder FROM imas_courses WHERE id=:id");
-					$stm->execute(array(':id'=>$cid));
-					$items = unserialize($stm->fetchColumn(0));
+					$aid = $stm->fetchColumn(0);			
 
 					$items[] = $newitem;
 					$items = serialize($items);
@@ -1229,7 +1233,7 @@ if ($linkparts[0]=='cid') {
 	}
 	$cid = $line['courseid'];
 	if (isset($_SESSION['lti_duedate']) && $line['date_by_lti']==1) { //no default due date set yet
-		$stm = $DBH->prepare("UPDATE imas_assessments SET enddate=:enddate,avail=1,date_by_lti=2 WHERE id=:id")
+		$stm = $DBH->prepare("UPDATE imas_assessments SET enddate=:enddate,avail=1,date_by_lti=2 WHERE id=:id");
 		$stm->execute(array(':enddate'=>$_SESSION['lti_duedate'], ':id'=>$aid));
 		$line['enddate'] = $_SESSION['lti_duedate'];
 	}

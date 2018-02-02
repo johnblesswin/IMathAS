@@ -903,7 +903,11 @@ if ($overwriteBody==1) {
 			if (($line['date_by_lti']&~4)==1) {
 				echo 'Waiting for the LMS to send a date';
 			} else {
-				echo 'Default due date set by LMS: '.$edate.' '.$etime.' (individual student due dates may vary).';
+				if ($enddate==2000000000) {
+					echo 'Default due date set by LMS: No due date';
+				} else {
+					echo 'Default due date set by LMS: '.$edate.' '.$etime.' (individual student due dates may vary).';
+				}
 			}
 			echo '<br/><input type="checkbox" name="hidebylti" ';
 			if (($line['date_by_lti']&4)==4) { echo 'checked';}
