@@ -116,7 +116,7 @@
 
 		//DB $query = "SELECT enddate,islatepass FROM imas_exceptions WHERE userid='$userid' AND assessmentid='$aid' AND itemtype='A'";
 		//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
-		$stm = $DBH->prepare("SELECT startdate,enddate,islatepass FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
+		$stm = $DBH->prepare("SELECT startdate,enddate,islatepass,is_lti FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
 		$stm->execute(array(':userid'=>$userid, ':assessmentid'=>$aid));
 		$hasexception = false;
 		//DB if (mysql_num_rows($result)==0) {
@@ -196,7 +196,7 @@
 
 		//DB $query = "SELECT enddate,islatepass FROM imas_exceptions WHERE userid='$userid' AND assessmentid='$aid' AND itemtype='A'";
 		//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
-		$stm = $DBH->prepare("SELECT startdate,enddate,islatepass FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
+		$stm = $DBH->prepare("SELECT startdate,enddate,islatepass,is_lti FROM imas_exceptions WHERE userid=:userid AND assessmentid=:assessmentid AND itemtype='A'");
 		$stm->execute(array(':userid'=>$userid, ':assessmentid'=>$aid));
 		$hasexception = false;
 		//DB if (mysql_num_rows($result)==0) {
