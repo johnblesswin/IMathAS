@@ -558,6 +558,12 @@ switch($_POST['action']) {
 					//undo it - doesn't restore dates
 					$stm = $DBH->prepare("UPDATE imas_assessments SET date_by_lti=0 WHERE date_by_lti>0 AND courseid=:cid");
 					$stm->execute(array(':cid'=>$_GET['id']));
+					//remove is_lti from exceptions with latepasses
+					$stm = $DBH->prepare("UPDATE imas_exceptions SET is_lti=0 WHERE is_lti>0 AND islatepass>0 AND courseid=:cid");
+					$stm->execute(array(':cid'=>$_GET['id']));
+					//delete any other is_lti exceptions
+					$stm = $DBH->prepare("DELETE FROM imas_exceptions WHERE is_lti>0 AND islatepass=0 AND courseid=:cid");
+					$stm->execute(array(':cid'=>$_GET['id']));
 				}
 			}
 		} else {
