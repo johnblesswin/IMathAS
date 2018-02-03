@@ -68,7 +68,7 @@
 		$now = time();
 		$assessmentclosed = false;
 
-		if (($adata['avail']==0 || $adata['date_by_lti']>2) && !isset($teacherid) && !isset($tutorid)) {
+		if ($adata['avail']==0 && !isset($teacherid) && !isset($tutorid)) {
 			$assessmentclosed = true;
 		}
 		$canuselatepass = false;
@@ -108,7 +108,7 @@
 					}
 				}
 			}
-			if (($assessmentclosed || $isreview) && $adata['avail']>0 && $adata['date_by_lti']<3 && $isRealStudent) {
+			if (($assessmentclosed || $isreview) && $adata['avail']>0 && $isRealStudent) {
 				if ($latepasses>0) {
 					list($useexception, $canundolatepass, $canuselatepass) = $exceptionfuncs->getCanUseAssessException($row, $adata);
 				}
@@ -131,7 +131,7 @@
 			require("header.php");
 			showEnterAssessmentBreadcrumbs($adata['name']);
 			echo '<p>', _('This assessment is closed'), '</p>';
-			if ($adata['avail']>0 && $adata['date_by_lti']<3) {
+			if ($adata['avail']>0) {
 
 				if (!$actas && $canuselatepass) {
 					echo "<p><a href=\"$imasroot/course/redeemlatepass.php?cid=$cid&aid=$aid\">", _('Use LatePass'), "</a></p>";
@@ -669,7 +669,7 @@
 	$now = time();
 	//check for dates - kick out student if after due date
 	//if (!$isteacher) {
-	if (($testsettings['avail']==0 || $testsettings['date_by_lti']>2) && !$isteacher) {
+	if ($testsettings['avail']==0 && !$isteacher) {
 		echo _('Assessment is closed');
 		leavetestmsg();
 		exit;

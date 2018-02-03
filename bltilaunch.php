@@ -614,13 +614,11 @@ if (isset($_GET['launch'])) {
 	}
 	unset($_SESSION['lti_duedate']);
 	if (isset($_REQUEST['custom_canvas_assignment_due_at'])) {
-		if ($_REQUEST['custom_canvas_assignment_due_at']=='$Canvas.assignment.dueAt.iso8601') {
-			$_SESSION['lti_duedate'] = 2000000000;
+		$duedate = strtotime($_REQUEST['custom_canvas_assignment_due_at']);
+		if ($duedate !== false) {
+			$_SESSION['lti_duedate'] = $duedate;
 		} else {
-			$duedate = strtotime($_REQUEST['custom_canvas_assignment_due_at']);
-			if ($duedate !== false) {
-				$_SESSION['lti_duedate'] = $duedate;
-			}
+			$_SESSION['lti_duedate'] = 2000000000;
 		}
 	}
 
@@ -1232,8 +1230,9 @@ if ($linkparts[0]=='cid') {
 		reporterror("This assignment does not appear to exist anymore");
 	}
 	$cid = $line['courseid'];
-	if (isset($_SESSION['lti_duedate']) && $line['date_by_lti']==1) { //no default due date set yet
-		$stm = $DBH->prepare("UPDATE imas_assessments SET enddate=:enddate,avail=1,date_by_lti=2 WHERE id=:id");
+	if (isset($_SESSION['lti_duedate']) && ($line['date_by_lti']==1 || ($_SESSION['ltirole']=='instructor' && $line['date_by_lti']>0))) {
+		//no default due date set yet, or is the instructor:  set the default due date
+		$stm = $DBH->prepare("UPDATE imas_assessments SET enddate=:enddate,date_by_lti=2 WHERE id=:id");
 		$stm->execute(array(':enddate'=>$_SESSION['lti_duedate'], ':id'=>$aid));
 		$line['enddate'] = $_SESSION['lti_duedate'];
 	}

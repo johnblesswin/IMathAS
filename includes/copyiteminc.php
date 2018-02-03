@@ -355,9 +355,6 @@ function copyitem($itemid,$gbcats=false,$sethidden=false) {
 		
 		if (isset($datesbylti) && $datesbylti==true) {
 			$row['date_by_lti'] = 1;
-			$row['avail'] = 0;
-			$row['startdate'] = 0;
-			$row['enddate'] = 2000000000;
 		} else {
 			$row['date_by_lti'] = 0;
 		}
