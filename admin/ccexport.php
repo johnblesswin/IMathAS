@@ -405,7 +405,7 @@ if (isset($_GET['delete'])) {
 						$canvout .= '<content_type>Assignment</content_type>'."\n";
 						$canvout .= '<identifierref>RES'.$iteminfo[$item][0].$iteminfo[$item][1].'</identifierref>'."\n";
 						$canvout .= '<title>'.htmlentities($row[0],ENT_XML1,'UTF-8',false).'</title>'."\n";
-						$canvout .= '<workflow_state>'.(($row[6]==0||$row[8]>2)?'unpublished':'active').'</workflow_state>'."\n";
+						$canvout .= '<workflow_state>'.($row[6]==0?'unpublished':'active').'</workflow_state>'."\n";
 						$canvout .= "<position>$ccnt</position> <indent>".max(strlen($ind)/2 - 2, 0)."</indent> </item>";
 						$ccnt++;
 						$aitems = explode(',',$row[3]);
@@ -444,7 +444,7 @@ if (isset($_GET['delete'])) {
 						$fp = fopen($newdir.'/assn'.$iteminfo[$item][1].'/assignment_settings.xml','w');
 						fwrite($fp,'<assignment xmlns="http://canvas.instructure.com/xsd/cccv1p0" identifier="RES'.$iteminfo[$item][0].$iteminfo[$item][1].'" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://canvas.instructure.com/xsd/cccv1p0 http://canvas.instructure.com/xsd/cccv1p0.xsd">'."\n");
 						fwrite($fp,'<title>'.htmlentities($row[0],ENT_XML1,'UTF-8',false).'</title>'."\n");
-						fwrite($fp,'<workflow_state>'.(($row[6]==0||$row[8]>2)?'unpublished':'published').'</workflow_state>'."\n");
+						fwrite($fp,'<workflow_state>'.($row[6]==0?'unpublished':'published').'</workflow_state>'."\n");
 						fwrite($fp,'<points_possible>'.$totalpossible.'</points_possible>'."\n");
 						fwrite($fp,'<grading_type>points</grading_type>'."\n");
 						if (isset($_POST['includeduedates']) && $row[4]<2000000000) {

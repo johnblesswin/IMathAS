@@ -347,18 +347,16 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 			}
 			if ($_POST['avail']==1) {
 				//DB $query .= ",startdate=$startdate,enddate=$enddate,reviewdate=$reviewdate";
-				$query .= ",startdate=:startdate,enddate=:enddate,reviewdate=:reviewdate";
-				$qarr[':startdate'] = $startdate;
-				$qarr[':enddate'] = $enddate;
+				if ($dates_by_lti==0) {
+					$query .= ",startdate=:startdate,enddate=:enddate,reviewdate=:reviewdate";
+					$qarr[':startdate'] = $startdate;
+					$qarr[':enddate'] = $enddate;
+				} else {
+					$query .= ",reviewdate=:reviewdate";
+				}
 				$qarr[':reviewdate'] = $reviewdate;
 			}
-			if ($dates_by_lti>0) {
-				if (isset($_POST['hidebylti'])) {
-					$query .= ",date_by_lti=(date_by_lti|4)";
-				} else {
-					$query .= ",date_by_lti=(date_by_lti&~4)";
-				}
-			}
+			
 			//DB $query .= " WHERE id='{$_GET['id']}';";
 			$query .= " WHERE id=:id";
 			$qarr[':id'] = $_GET['id'];
@@ -379,7 +377,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 		} else { //add new
 			if (!isset($_POST['copyendmsg'])) {$endmsg = '';}
 			if ($dates_by_lti>0) {
-				$datebylti = (isset($_POST['hidebylti']))?4:1;
+				$datebylti = 1;
 			} else {
 				$datebylti = 0;
 			}
@@ -887,7 +885,7 @@ if ($overwriteBody==1) {
 		<span class=formright>
 			<input type=radio name="edatetype" value="2000000000" <?php writeHtmlChecked($enddate,"2000000000",0); ?>/>
 			 Always after start date<br/>
-			<input type=radio name="edatetype" value="edate"  <?php writeHtmlChecked($enddate,"2000000000",1); ?>/>
+			<input type=radio name="edatetype" va lue="edate"  <?php writeHtmlChecked($enddate,"2000000000",1); ?>/>
 			<input type=text size=10 name="edate" value="<?php echo $edate;?>">
 			<a href="#" onClick="displayDatePicker('edate', this, 'sdate', 'start date'); return false">
 			<img src="../img/cal.gif" alt="Calendar"/></A>
@@ -896,22 +894,27 @@ if ($overwriteBody==1) {
 <?php
 	} else { //dates_by_lti is on
 ?>
+		<span class=form>Availability:</span>
+		<span class=formright>
+			<input type=radio name="avail" value="0" <?php writeHtmlChecked($line['avail'],0);?> onclick="document.getElementById('datediv').style.display='none';"/>Prevent access<br/>
+			<input type=radio name="avail" value="1" <?php writeHtmlChecked($line['avail'],1);?> onclick="document.getElementById('datediv').style.display='block';"/>Allow access<br/>
+		</span><br class="form"/>
+		
+		<div id="datediv" style="display:<?php echo ($line['avail']==1)?"block":"none"; ?>">
+		
 		<span class=form>Due date</span>
 		<span class=formright>
 			The course setting is enabled for dates to be set via LTI.<br/>
 			<?php
-			if (($line['date_by_lti']&~4)==1) {
+			if ($line['date_by_lti']==1) {
 				echo 'Waiting for the LMS to send a date';
 			} else {
 				if ($enddate==2000000000) {
-					echo 'Default due date set by LMS: No due date';
+					echo 'Default due date set by LMS: No due date (individual student due dates may vary)';
 				} else {
 					echo 'Default due date set by LMS: '.$edate.' '.$etime.' (individual student due dates may vary).';
 				}
 			}
-			echo '<br/><input type="checkbox" name="hidebylti" ';
-			if (($line['date_by_lti']&4)==4) { echo 'checked';}
-			echo '> Temporarily block access to this assessment.';
 			?>
 		</span><br class=form />
 

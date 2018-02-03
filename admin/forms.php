@@ -539,11 +539,7 @@ switch($_GET['action']) {
 			echo '<span class="form">Allow the LMS to set assessment due dates?<br/><span class="small">(Only supported by Canvas)</span></span>';
 			echo '<span class="formright"><input type="checkbox" name="setdatesbylti" value="1" ';
 			if ($dates_by_lti>0) { echo 'checked="checked"';}
-			echo '/> ';
-			if ($dates_by_lti==0) {
-				echo 'WARNING: Selecting this option will immediately override the dates currently set for ALL assessments';
-			}
-			echo '</span><br class="form" />';
+			echo '/> </span><br class="form" />';
 			
 		}
 
