@@ -402,6 +402,15 @@
 		header('Location: ' . $GLOBALS['basesiteurl'] . "/assessment/showtest.php");
 	}
 
+	if ($myrights>18 && isset($sessiondata['ltiitemtype']) && $_SERVER['PHP_SELF']==$imasroot.'/index.php') {
+		foreach ($sessiondata as $k=>$v) {
+			if (substr($k,0,3)=='lti') {
+				unset($sessiondata[$k]);
+			}
+		}
+		writesessiondata();
+	}
+	
 	if (isset($sessiondata['ltiitemtype'])) {
 		$flexwidth = true;
 		if ($sessiondata['ltiitemtype']==1) {
