@@ -94,8 +94,8 @@ class ExceptionFuncs {
 		$canundolatepass = false;
 
 		$useexception = ($exception!==null && $exception!==false); //use by default
-		if ($exception!==null && $exception!==false && $exception[2]==0 && !empty($exception[3])) {
-			//is LTI-set and not a latepass - use the exception
+		if ($exception!==null && $exception!==false && !empty($exception[3])) {
+			//is LTI-set - use the exception
 			//TODO:  Make sure using exception[3] isn't going to conflict anywhere
 			
 		} else if ($exception!==null && $exception[2]>0 && $adata['enddate']>$exception[1]) {
@@ -159,7 +159,7 @@ class ExceptionFuncs {
 		if (($adata['allowlate']%10==1 || $adata['allowlate']%10-1>$latepasscnt) && !in_array($adata['id'],$this->viewedassess) && $this->latepasses>0 && $this->isstu) {
 			if ($now>$adata['enddate'] && $adata['allowlate']>10 && ($now - $adata['enddate'])<$this->latepasshrs*3600) {
 				$canuselatepass = true;
-			} else if ($now<$adata['enddate']) {
+			} else if ($now<$adata['enddate'] && $adata['enddate']<2000000000) {
 				$canuselatepass = true;
 			}
 		}
