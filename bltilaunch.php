@@ -800,7 +800,10 @@ if ($stm->rowCount()==0) {
 						$copycourse = "no";
 					}
 				}
-				if (isset($_POST['docoursecopy']) && $_POST['docoursecopy']=="makecopy") {
+				if (isset($_POST['docoursecopy']) && $_POST['docoursecopy']=="useother" && !empty($_POST['useothercoursecid'])) {
+					$destcid = $_POST['useothercoursecid'];
+					$copycourse = "no";
+				} else if (isset($_POST['docoursecopy']) && $_POST['docoursecopy']=="makecopy") {
 					$copycourse = "yes";
 					$sourcecid = $aidsourcecid;
 				} else if (isset($_POST['docoursecopy']) && $_POST['docoursecopy']=="copyother" && $_POST['othercoursecid']>0) {
@@ -811,6 +814,7 @@ if ($stm->rowCount()==0) {
 					$_SESSION['userid'] = $userid; //remember me
 					$nologo = true;
 					$flexwidth = true;
+					$placeinhead = '<style type="text/css"> ul.nomark {margin-left: 20px;} ul.nomark li {text-indent: -20px;}</style>';
 					require("header.php");
 
 					$query = "SELECT DISTINCT ic.id,ic.name FROM imas_courses AS ic JOIN imas_teachers AS imt ON ic.id=imt.courseid ";
@@ -825,6 +829,19 @@ if ($stm->rowCount()==0) {
 					while ($row = $stm->fetch(PDO::FETCH_NUM)) {
 						$othercourses[$row[0]] = $row[1];
 					}
+					$advuseother = '';
+					if (count($othercourses)>0) {
+						$advuseother .= '<li><a class="small" style="margin-left:20px;" href="#" onclick="$(this).hide().next(\'span\').show();return false;">Show advanced options</a> ';
+						$advuseother .= '<span style="display:none;"><input name="docoursecopy" type="radio" value="useother" />';
+						$advuseother .= 'Associate this LMS course with an existing course: ';
+						$advuseother .= '<select name="useothercoursecid">';
+						foreach ($othercourses as $k=>$v) {
+							if ($k==$aidsourcecid) {continue;}
+							$advuseother .= '<option value="'.$k.'">'.Sanitize::encodeStringForDisplay($v).'</option>';
+						}
+						$advuseother .= '</select>';
+						$advuseother .= '<br/>Using this option means students in this LMS course will show up in the Roster and Gradebook of the '.$installname.' course you associate it with.</span></li>';
+					}
 					echo "<form method=\"post\" action=\"".$imasroot."/bltilaunch.php\">";
 					if ($copycourse=="ask") {
 						echo "<p>Your LMS course is not yet associated with a course on $installname.  The assignment associated with this
@@ -834,17 +851,18 @@ if ($stm->rowCount()==0) {
 							$installname course.  If you don't want to use your existing $installname course,
 							a copy of the $installname assignments can be made for you automatically and associated with
 							this LMS course.</p>
-							<p>
-							<input name=\"docoursecopy\" type=\"radio\" value=\"useexisting\" checked />Associate this LMS course with my existing course (ID $aidsourcecid) on $installname<br/>
-							<input name=\"docoursecopy\" type=\"radio\" value=\"makecopy\" />Create a copy of my existing course (ID $aidsourcecid) on $installname";
+							<ul class=nomark>
+							<li><input name=\"docoursecopy\" type=\"radio\" value=\"useexisting\" checked />Associate this LMS course with my existing course (ID $aidsourcecid) on $installname</li>
+							<li><input name=\"docoursecopy\" type=\"radio\" value=\"makecopy\" />Create a copy of my existing course (ID $aidsourcecid) on $installname</li>";
 						if (count($othercourses)>0) {
-							echo '<br/><input name="docoursecopy" type="radio" value="copyother" />Create a copy of another course: <select name="othercoursecid">';
+							echo '<li><input name="docoursecopy" type="radio" value="copyother" />Create a copy of another course: <select name="othercoursecid">';
 							foreach ($othercourses as $k=>$v) {
 								echo '<option value="'.$k.'">'.Sanitize::encodeStringForDisplay($v).'</option>';
 							}
-							echo '</select>';
+							echo '</select></li>';
+							echo $advuseother;
 						}
-						echo "	</p>
+						echo "	</ul>
 							<p>The first option is best if this is your first time using this $installname course.  The second option
 							may be preferrable if you have copied the course in your LMS and want your students records to
 							show in a separate $installname course.</p>
@@ -857,12 +875,14 @@ if ($stm->rowCount()==0) {
 							without affecting the original course, and will ensure your student records are housed in your own
 							$installname course.</p>";
 						if (count($othercourses)>0) {
-							echo "<p><input name=\"docoursecopy\" type=\"radio\" value=\"makecopy\" />Create a copy of the original course (ID $aidsourcecid) on $installname";
-							echo '<br/><input name="docoursecopy" type="radio" value="copyother" />Create a copy of another course: <select name="othercoursecid">';
+							echo "<ul class=nomark><li><input name=\"docoursecopy\" type=\"radio\" value=\"makecopy\" />Create a copy of the original course (ID $aidsourcecid) on $installname</li>";
+							echo '<li><input name="docoursecopy" type="radio" value="copyother" />Create a copy of another course: <select name="othercoursecid">';
 							foreach ($othercourses as $k=>$v) {
 								echo '<option value="'.$k.'">'.Sanitize::encodeStringForDisplay($v).'</option>';
 							}
-							echo '</select></p>';
+							echo '</select></li>';
+							echo $advuseother;
+							echo '</ul>';
 						} else {
 							echo "<input name=\"docoursecopy\" type=\"hidden\" value=\"makecopy\" />";
 						}
