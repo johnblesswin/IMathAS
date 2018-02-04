@@ -81,6 +81,11 @@
 				if ($row!=null) {
 					$useexception = $exceptionfuncs->getCanUseAssessException($row, $adata, true);
 				}
+			} else if (isset($_SESSION['lti_duedate']) && (isset($teacherid) || isset($tutorid)) && $_SESSION['lti_duedate']!=$adata['enddate']) {
+				//teacher launch with lti duedate that's different than default
+				//do a pseudo-exception
+				$useexception = true;
+				$row = array(0, $_SESSION['lti_duedate'], 0, 1);
 			}
 			if ($row!=null && $useexception) {
 				if ($now<$row[0] || $row[1]<$now) { //outside exception dates
@@ -685,6 +690,12 @@
 		if ($exceptionrow != null) {
 			$useexception = $exceptionfuncs->getCanUseAssessException($exceptionrow, $testsettings, true);
 			$ltiexception = ($row[3]>0 && $row[2]==0);
+		} else if (isset($_SESSION['lti_duedate']) && $isteacher && $_SESSION['lti_duedate']!=$testsettings['enddate']) {
+			//teacher launch with lti duedate that's different than default
+			//do a pseudo-exception
+			$useexception = true;
+			$ltiexception = true;
+			$exceptionrow = array(0, $_SESSION['lti_duedate'], 0, 1);
 		}
 		if ($exceptionrow!=null && $useexception) {
 			if ($now<$exceptionrow[0] || $exceptionrow[1]<$now) { //outside exception dates
