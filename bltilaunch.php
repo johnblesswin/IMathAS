@@ -1230,10 +1230,15 @@ if ($linkparts[0]=='cid') {
 		reporterror("This assignment does not appear to exist anymore");
 	}
 	$cid = $line['courseid'];
-	if (isset($_SESSION['lti_duedate']) && ($line['date_by_lti']==1 || ($_SESSION['ltirole']=='instructor' && $line['date_by_lti']>0))) {
+	if (isset($_SESSION['lti_duedate']) && ($line['date_by_lti']==1 || $line['date_by_lti']==2)) {
+		if ($_SESSION['ltirole']=='instructor') {
+			$newdatebylti = 2; //set/keep as instructor-set
+		} else {
+			$newdatebylti = 3; //mark as student-set
+		}
 		//no default due date set yet, or is the instructor:  set the default due date
-		$stm = $DBH->prepare("UPDATE imas_assessments SET enddate=:enddate,date_by_lti=2 WHERE id=:id");
-		$stm->execute(array(':enddate'=>$_SESSION['lti_duedate'], ':id'=>$aid));
+		$stm = $DBH->prepare("UPDATE imas_assessments SET enddate=:enddate,date_by_lti=:datebylti WHERE id=:id");
+		$stm->execute(array(':enddate'=>$_SESSION['lti_duedate'], ':datebylti'=>$newdatebylti, ':id'=>$aid));
 		$line['enddate'] = $_SESSION['lti_duedate'];
 	}
 	
@@ -1263,7 +1268,7 @@ if ($linkparts[0]=='cid') {
 			require_once("./includes/exceptionfuncs.php");
 			$exceptionfuncs = new ExceptionFuncs($userid, $cid, true);
 			$useexception = $exceptionfuncs->getCanUseAssessException($exceptionrow, $line, true);
-		} else if ($line['date_by_lti']==2 && $line['enddate']!=$_SESSION['lti_duedate']) {
+		} else if ($line['date_by_lti']==3 && $line['enddate']!=$_SESSION['lti_duedate']) {
 			//default dates already set by LTI, and users's date doesn't match - create new exception
 			$exceptionrow = array($now, $_SESSION['lti_duedate'], 0, 1);
 			$stm = $DBH->prepare("INSERT INTO imas_exceptions (startdate,enddate,islatepass,is_lti,userid,assessmentid,itemtype) VALUES (?,?,?,?,?,?,'A')");
