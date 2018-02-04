@@ -424,7 +424,7 @@ if (!$hascourse || isset($_GET['chgcourselink'])) {
 	} else if ($line['date_by_lti']==1) {
 		echo 'Waiting for the LMS to send a date';	
 	} else if ($line['date_by_lti']>1) {
-		echo 'Default due date set by LMS: '.formatdate($line['enddate']).'.';
+		echo 'Default due date set by LMS. Available until: '.formatdate($line['enddate']).'.';
 		echo '</p><p>';
 		if ($line['date_by_lti']==2) {
 			echo 'This default due date was set by the date reported by the LMS in your instructor launch, and may change when the first student launches the assignment. ';
@@ -437,11 +437,7 @@ if (!$hascourse || isset($_GET['chgcourselink'])) {
 		echo 'this system will handle that by setting a due date exception. ';
 	} else if ($line['avail']==1 && $line['startdate']<$now && $line['enddate']>$now) { //regular show
 		echo "Currently available to students.  ";
-		if ($line['enddate']==2000000000) {
-			echo "No due date.";
-		} else {
-			echo "Available until " . formatdate($line['enddate']);
-		}
+		echo "Available until " . formatdate($line['enddate']);
 	} else {
 		echo 'Currently unavailable to students. Available '.formatdate($line['startdate']).' until '.formatdate($line['enddate']);
 	}
