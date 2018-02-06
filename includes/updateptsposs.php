@@ -25,7 +25,11 @@ function updatePointsPossible($aid, $itemorder = null, $defpoints = null) {
 }
 
 function calcPointsPossible($itemorder, $questionpointdata, $defpoints) {
-	$aitems = explode(',', $itemorder);
+	if (is_array($itemorder)) {
+		$aitems = $itemorder;
+	} else {
+		$aitems = explode(',', $itemorder);
+	}
 	
 	$totalpossible = 0;
 	foreach ($aitems as $v) {
