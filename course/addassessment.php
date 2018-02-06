@@ -286,7 +286,7 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 			$_POST['intro'] = myhtmLawed($_POST['intro']);
 		}
 		if (isset($_GET['id'])) {  //already have id; update
-			$stm = $DBH->prepare("SELECT isgroup,intro FROM imas_assessments WHERE id=:id");
+			$stm = $DBH->prepare("SELECT isgroup,intro,itemorder FROM imas_assessments WHERE id=:id");
 			$stm->execute(array(':id'=>$_GET['id']));
 			$curassess = $stm->fetch(PDO::FETCH_ASSOC);
 
@@ -347,12 +347,20 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 				$qarr[':reviewdate'] = $reviewdate;
 			}
 			//DB $query .= " WHERE id='{$_GET['id']}';";
-			$query .= " WHERE id=:id";
+			$query .= " WHERE id=:id AND courseid=:cid";
 			$qarr[':id'] = $_GET['id'];
+			$qarr[':cid'] = $cid;
 
 			//DB $result = mysql_query($query) or die("Query failed : " . mysql_error());
 			$stm = $DBH->prepare($query);
 			$stm->execute($qarr);
+			
+			//update ptsposs field
+			if ($stm->rowCount()>0 && isset($_POST['defpoints'])) {
+				require_once("../includes/updateptsposs.php");
+				updatePointsPossible($_GET['id'], $curassess['itemorder'], $_POST['defpoints']);
+			}
+			
 			if ($from=='gb') {
 				header(sprintf('Location: %s/course/gradebook.php?cid=%s', $GLOBALS['basesiteurl'], $cid));
 			} else if ($from=='mcd') {
@@ -378,12 +386,12 @@ if (!(isset($teacherid))) { // loaded by a NON-teacher
 			$query = "INSERT INTO imas_assessments (courseid,name,summary,intro,startdate,enddate,reviewdate,timelimit,minscore,";
 			$query .= "displaymethod,defpoints,defattempts,defpenalty,deffeedback,shuffle,gbcategory,password,cntingb,tutoredit,showcat,";
 			$query .= "eqnhelper,showtips,caltag,calrtag,isgroup,groupmax,groupsetid,showhints,reqscore,reqscoreaid,noprint,avail,allowlate,";
-			$query .= "exceptionpenalty,ltisecret,endmsg,deffeedbacktext,msgtoinstr,posttoforum,istutorial,defoutcome) VALUES ";
+			$query .= "exceptionpenalty,ltisecret,endmsg,deffeedbacktext,msgtoinstr,posttoforum,istutorial,defoutcome,ptsposs) VALUES ";
 			$query .= "(:courseid, :name, :summary, :intro, :startdate, :enddate, :reviewdate, :timelimit, :minscore, :displaymethod, ";
 			$query .= ":defpoints, :defattempts, :defpenalty, :deffeedback, :shuffle, :gbcategory, :password, :cntingb, :tutoredit, ";
 			$query .= ":showcat, :eqnhelper, :showtips, :caltag, :calrtag, :isgroup, :groupmax, :groupsetid, :showhints, :reqscore, ";
 			$query .= ":reqscoreaid, :noprint, :avail, :allowlate, :exceptionpenalty, :ltisecret, :endmsg, :deffeedbacktext, :msgtoinstr, ";
-			$query .= ":posttoforum, :istutorial, :defoutcome)";
+			$query .= ":posttoforum, :istutorial, :defoutcome, 0)";
 			$stm = $DBH->prepare($query);
 			$stm->execute(array(':courseid'=>$cid, ':name'=>$_POST['name'], ':summary'=>$_POST['summary'], ':intro'=>$_POST['intro'],
 				':startdate'=>$startdate, ':enddate'=>$enddate, ':reviewdate'=>$reviewdate, ':timelimit'=>$timelimit,

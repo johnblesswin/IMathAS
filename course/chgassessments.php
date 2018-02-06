@@ -367,7 +367,13 @@ if (!(isset($teacherid))) {
 			//DB mysql_query($query) or die("Query failed : " . mysql_error());
 			$stm = $DBH->query("UPDATE imas_questions SET points=9999,attempts=9999,penalty=9999,regen=0,showans=0,fixedseeds=NULL WHERE assessmentid IN ($checkedlist)");
 		}
-
+		if (isset($_POST['docopyopt']) || isset($_POST['chgdefpoints']) || isset($_POST['removeperq'])) {
+			//update points possible
+			require_once("../includes/updateptsposs.php");
+			foreach ($checked as $aid) {
+				updatePointsPossible($aid);
+			}
+		}
 		if (isset($_POST['chgendmsg'])) {
 			include("assessendmsg.php");
 		} else {
