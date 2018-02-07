@@ -293,8 +293,9 @@ if (!(isset($teacherid))) {
 		if (isset($_POST['chgreqscoretype'])) {
 			if ($_POST['reqscoretype']==0) {
 				$sets[] = 'reqscore=ABS(reqscore)';
+				$sets[] = 'reqscoretype=(reqscoretype & ~1)';
 			} else {
-				$sets[] = 'reqscore=-1*ABS(reqscore)';
+				$sets[] = 'reqscoretype=(reqscoretype | 1)';
 			}
 		}
 
