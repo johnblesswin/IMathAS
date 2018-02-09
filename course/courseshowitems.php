@@ -145,7 +145,7 @@ function getWikiDD($i, $typeid, $parent, $itemid) {
 
 
 $itemshowdata = null;
-function showitems($items,$parent,$inpublic=false) {
+function showitems($items,$parent,$inpublic=false,$greyitems=0) {
 	   global $DBH,$teacherid,$tutorid,$studentid,$cid,$imasroot,$userid,$openblocks,$firstload,$sessiondata,$myrights;
 	   global $itemicons,$exceptions,$latepasses,$ispublic,$studentinfo,$newpostcnts,$CFG,$latepasshrs,$toolset,$readlinkeditems;
 	   global $itemshowdata, $exceptionfuncs;
@@ -217,6 +217,11 @@ function showitems($items,$parent,$inpublic=false) {
 			} else {
 				$availbeh = _('Collapsed');
 			}
+			if (strlen($items[$i]['SH']==3)) {
+				$contentbehavior = $items[$i]['SH'][3];
+			} else {
+				$contentbehavior = 0;
+			}
 			if ($items[$i]['colors']=='') {
 				$titlebg = '';
 			} else {
@@ -225,6 +230,7 @@ function showitems($items,$parent,$inpublic=false) {
 			if (!isset($items[$i]['avail'])) { //backwards compat
 				$items[$i]['avail'] = 1;
 			}
+			
 			if ($items[$i]['avail']==2 || ($items[$i]['avail']==1 && $items[$i]['startdate']<$now && $items[$i]['enddate']>$now)) { //if "available"
 				if ($firstload && (strlen($items[$i]['SH'])==1 || $items[$i]['SH'][1]=='O')) {
 					echo "<script> oblist = oblist + ',".$items[$i]['id']."';</script>\n";
@@ -398,7 +404,7 @@ function showitems($items,$parent,$inpublic=false) {
 					echo "id=\"block{$items[$i]['id']}\">";
 					if ($isopen) {
 						//if (isset($teacherid)) {echo generateadditem($parent.'-'.$bnum,'t');}
-						showitems($items[$i]['items'],$parent.'-'.$bnum,$inpublic||$turnonpublic);
+						showitems($items[$i]['items'],$parent.'-'.$bnum,$inpublic||$turnonpublic, $contentbehavior);
 						//if (isset($teacherid) && count($items[$i]['items'])>0) {echo generateadditem($parent.'-'.$bnum,'b');}
 					} else {
 						echo _('Loading content...');
@@ -582,7 +588,7 @@ function showitems($items,$parent,$inpublic=false) {
 					echo "id=\"block{$items[$i]['id']}\">";
 					if ($isopen) {
 						//if (isset($teacherid)) {echo generateadditem($parent.'-'.$bnum,'t');}
-						showitems($items[$i]['items'],$parent.'-'.$bnum,$inpublic||$turnonpublic);
+						showitems($items[$i]['items'],$parent.'-'.$bnum,$inpublic||$turnonpublic, $contentbehavior);
 
 						//if (isset($teacherid) && count($items[$i]['items'])>0) {echo generateadditem($parent.'-'.$bnum,'b');}
 					} else {
@@ -591,6 +597,9 @@ function showitems($items,$parent,$inpublic=false) {
 					echo "</div>";
 					echo '</div>'; //end blockwrap
 				}
+			} else if ($items[$i]['avail']>0 && (($greyitems&1 && $now<$items[$i]['startdate']) || ($greyitems&2 && $now>$items[$i]['enddate']))) { //show greyed
+				//**TODO:  Show greyed
+				$show .= sprintf(_('Showing %1$s %2$s to %3$s'), $availbeh, $startdate, $enddate);
 			}
 			continue;
 		   } else if ($ispublic && !$inpublic) {
@@ -845,6 +854,8 @@ function showitems($items,$parent,$inpublic=false) {
 				   echo filter("<div class=\"itemsum grey\">{$line['summary']}</div>\n");
 				   enditem($canedit); //echo "</div>\n";
 
+			   } else if ($line['avail']>0 && (($greyitems&1 && $now<$line['startdate']) || ($greyitems&2 && $now>$line['enddate']))) { //show greyed
+			   	   //**TODO:  Show greyed
 			   } else if ($viewall) { //not avail to stu
 				   if ($line['avail']==0) {
 					   $show = _('Hidden');
@@ -1003,6 +1014,8 @@ function showitems($items,$parent,$inpublic=false) {
 				   }
 				   echo "</div>";
 				   enditem($canedit); //echo "</div>\n";
+			   } else if ($line['avail']>0 && (($greyitems&1 && $now<$line['startdate']) || ($greyitems&2 && $now>$line['enddate']))) { //show greyed
+			   	   //**TODO:  Show greyed
 			   } else if ($viewall) {
 				   if ($line['avail']==0) {
 					   $show = _('Hidden');
@@ -1109,6 +1122,8 @@ function showitems($items,$parent,$inpublic=false) {
 				   echo '</div>'; //itemhdr
 				   echo filter("<div class=itemsum>{$line['summary']}</div>\n");
 				   enditem($canedit); //echo "</div>\n";
+			   } else if ($line['avail']>0 && (($greyitems&1 && $now<$line['startdate']) || ($greyitems&2 && $now>$line['enddate']))) { //show greyed
+			   	   //**TODO:  Show greyed
 			   } else if ($viewall) {
 				   if ($line['avail']==0) {
 					   $show = _('Hidden');
@@ -1239,6 +1254,8 @@ function showitems($items,$parent,$inpublic=false) {
 				   echo '</div>'; //itemhdr
 				   echo filter("<div class=itemsum>{$line['summary']}</div>\n");
 				   enditem($canedit); //echo "</div>\n";
+			   } else if ($line['avail']>0 && (($greyitems&1 && $now<$line['startdate']) || ($greyitems&2 && $now>$line['enddate']))) { //show greyed
+			   	   //**TODO:  Show greyed
 			   } else if ($viewall) {
 				   if ($line['avail']==0) {
 					   $show = _('Hidden');
@@ -1351,6 +1368,8 @@ function showitems($items,$parent,$inpublic=false) {
 				   echo '</div>'; //itemhdr
 				   echo filter("<div class=itemsum>{$line['description']}</div>\n");
 				   enditem($canedit); //echo "</div>\n";
+			   } else if ($line['avail']>0 && (($greyitems&1 && $now<$line['startdate']) || ($greyitems&2 && $now>$line['enddate']))) { //show greyed
+			   	   //**TODO:  Show greyed
 			   } else if ($viewall) {
 				   if ($line['avail']==0) {
 					   $show = _('Hidden');
@@ -1502,6 +1521,8 @@ function showitems($items,$parent,$inpublic=false) {
 				   echo '</div>'; //itemhdr
 				   echo filter("<div class=itemsum>{$line['description']}</div>\n");
 				   enditem($canedit); //echo "</div>\n";
+			   } else if ($line['avail']>0 && (($greyitems&1 && $now<$line['startdate']) || ($greyitems&2 && $now>$line['enddate']))) { //show greyed
+			   	   //**TODO:  Show greyed
 			   } else if ($viewall) {
 				   if ($line['avail']==0) {
 					   $show = _('Hidden');

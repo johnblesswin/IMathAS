@@ -159,7 +159,7 @@ while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
 	//echo "{$row['name']}, {$row['enddate']}, $uppertime, {$row['reviewdate']}<br/>";
 	//if startdate is past now
 	if (!$editingon && ($row['startdate']>$now && !isset($teacherid))) {
-		continue;
+		continue; //TODO:  change this for greyed out
 	}
 	//if past reviewdate
 	if (!$editingon && $row['reviewdate']>0 && $now>$row['reviewdate'] && !isset($teacherid)) { //if has reviewdate and we're past it   //|| ($now>$row['enddate'] && $row['reviewdate']==0)
@@ -579,8 +579,9 @@ $itemorder = unserialize($stm->fetchColumn(0));
 $itemsimporder = array();
 $itemfolder = array();
 $hiddenitems = array();
+$greyitems = array();
 
-flattenitems($itemorder,$itemsimporder,$itemfolder,$hiddenitems,'0');
+flattenitems($itemorder,$itemsimporder,$itemfolder,$hiddenitems,$greyitems,'0');
 
 $itemsassoc = array();
 //DB $query = "SELECT id,itemtype,typeid FROM imas_items WHERE courseid='$cid'";
@@ -772,7 +773,7 @@ if ($pageshift==0) {
 }
 
 }
-function flattenitems($items,&$addto,&$folderholder,&$hiddenholder,$folder,$avail=true,$ishidden=false) {
+function flattenitems($items,&$addto,&$folderholder,&$hiddenholder,&$greyitems,$folder,$avail=true,$ishidden=false,$thisblockgrey=0) {
 	$now = time();
 	foreach ($items as $k=>$item) {
 		if (is_array($item)) {
@@ -780,13 +781,19 @@ function flattenitems($items,&$addto,&$folderholder,&$hiddenholder,$folder,$avai
 				$item['avail'] = 1;
 			}
 			$thisavail = ($avail && ($item['avail']==2 || ($item['avail']==1 && ($item['SH'][0]=='S' || ($item['startdate']<$now && $item['enddate']>$now)))));
+			if (strlen($item['SH'])>2) {
+				$thisblockgrey = $item['SH'][3];
+			} else {
+				$thisblockgrey = 0;
+			}
 			//set as hidden if explicitly hidden or opens in future.  We won't count past folders that aren't showing as hidden
 			//  to allow students with latepasses to access old assignments even if the folder is gone.
 			$thisishidden = ($ishidden || $item['avail']==0 || ($item['avail']==1 && $item['SH'][0]=='H' && $item['startdate']>$now));
-			flattenitems($item['items'],$addto,$folderholder,$hiddenholder,$folder.'-'.($k+1),$thisavail,$thisishidden);
+			flattenitems($item['items'],$addto,$folderholder,$hiddenholder,$greyitems,$folder.'-'.($k+1),$thisavail,$thisishidden,$thisblockgrey);
 		} else {
 			$addto[] = $item;
 			$folderholder[$item] = $folder;
+			$greyitems[$item] = $thisblockgrey;
 			if ($ishidden) {
 				$hiddenholder[$item] = true;
 			}
