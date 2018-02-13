@@ -217,11 +217,12 @@ function showitems($items,$parent,$inpublic=false,$greyitems=0) {
 			} else {
 				$availbeh = _('Collapsed');
 			}
-			if (strlen($items[$i]['SH']==3)) {
-				$contentbehavior = $items[$i]['SH'][3];
+			if (strlen($items[$i]['SH'])>2) {
+				$contentbehavior = $items[$i]['SH'][2];
 			} else {
 				$contentbehavior = 0;
 			}
+			echo "CB: $contentbehavior";
 			if ($items[$i]['colors']=='') {
 				$titlebg = '';
 			} else {
@@ -856,6 +857,24 @@ function showitems($items,$parent,$inpublic=false,$greyitems=0) {
 
 			   } else if ($line['avail']>0 && (($greyitems&1 && $now<$line['startdate']) || ($greyitems&2 && $now>$line['enddate']))) { //show greyed
 			   	   //**TODO:  Show greyed
+			   	   if ($now<$line['startdate']) {
+			   	   	   $show = sprintf(_('Will be available starting %1$s'), $startdate);
+			   	   } else {
+			   	   	   $show = sprintf(_('This assessment was due %1$s'), $enddate);
+			   	   }
+			   	   beginitem($canedit,$items[$i]); //echo "<div class=item>\n";
+				   echo '<div class="itemhdr">';
+				   echo getItemIcon('assess', 'assessment', true);
+				   echo "<div class=\"title grey\"><i>".Sanitize::encodeStringForDisplay($line['name'])."</i>";
+				   echo "<br/><i>$show</i>\n";
+				   echo '</div>'; //title
+				   if ($canedit) {
+				   	echo getAssessDD($i, $typeid, $parent, $items[$i]);
+				   }
+				   echo '</div>'; //itemhdr
+				   echo filter("<div class=\"itemsum grey\">{$line['summary']}</div>\n");
+				   enditem($canedit);
+				    				 		
 			   } else if ($viewall) { //not avail to stu
 				   if ($line['avail']==0) {
 					   $show = _('Hidden');
