@@ -90,6 +90,7 @@ function loadItemShowData($items,$onlyopen,$viewall,$inpublic=false,$ispublic=fa
 			}
 		}
 	}
+	$assessPreReqsToLookup = array();
 	if (isset($typelookups['Assessment']) && !$ispublic) {
 		$placeholders = Sanitize::generateQueryPlaceholders($typelookups['Assessment']);
 		if ($limited) {
@@ -102,6 +103,19 @@ function loadItemShowData($items,$onlyopen,$viewall,$inpublic=false,$ispublic=fa
 		while ($line = $stm->fetch(PDO::FETCH_ASSOC)) {
 			$line['itemtype'] = 'Assessment';
 			$itemshowdata[$typelookups['Assessment'][$line['id']]] = $line;
+			if ($line['reqscoreaid']>0 && ($line['reqscore']<0 || $line['reqscoretype']&1)) {
+				$assessPreReqsToLookup[$line['reqscoreaid']] = $line['id'];
+			}
+		}
+	}
+	if (count($assessPreReqsToLookup)>0 && !$limited) {
+		$typelookups['AssessPrereq'] = array();
+		$placeholders = Sanitize::generateQueryPlaceholders($assessPreReqsToLookup);
+		$stm = $DBH->prepare("SELECT id,name FROM imas_assessments WHERE id IN ($placeholders)");
+		$stm->execute(array_keys($assessPreReqsToLookup));
+		while ($line = $stm->fetch(PDO::FETCH_ASSOC)) {
+			$refaid = $assessPreReqsToLookup[$line['id']];
+			$itemshowdata[$typelookups['Assessment'][$refaid]]['reqscorename'] = $line['name'];
 		}
 	}
 	if (isset($typelookups['InlineText'])) {
