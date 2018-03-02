@@ -848,7 +848,9 @@ function showitems($items,$parent,$inpublic=false) {
 				   }
 
 				   echo "<div class=\"title grey\"><b><i>".Sanitize::encodeStringForDisplay($line['name'])."</i></b>";
-				   echo '<br/><span class="small">'._('The requirements for beginning this item have not been met yet').'</span>';
+				   //echo '<br/><span class="small">'._('The requirements for beginning this item have not been met yet').'</span>';
+				   echo '<br/><span class="small">'._('Prerequisite: ').abs($line['reqscore']).(($line['reqscoretype']&2)?'%':' points');
+				   echo _(' on ').Sanitize::encodeStringForDisplay($line['reqscorename']).'</span>';
 
 				   if ($line['enddate']!=2000000000) {
 					   echo "<br/> $endname $enddate \n";
