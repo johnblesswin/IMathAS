@@ -155,10 +155,11 @@ class ExceptionFuncs {
 		removed from below:
 			 && !in_array($adata['id'],$this->timelimitup)
 		*/
+
 		if (($adata['allowlate']%10==1 || $adata['allowlate']%10-1>$latepasscnt) && !in_array($adata['id'],$this->viewedassess) && $this->latepasses>0 && $this->isstu) {
-			if ($now>$adata['enddate'] && $adata['allowlate']>10 && ($now - $adata['enddate']) < $this->latepasshrs*3600 && $adata['enddate']+$this->latepasshrs*3600 < $this->courseenddate) {
+			if ($now>$adata['enddate'] && $adata['allowlate']>10 && ($now - $adata['enddate']) < $this->latepasshrs*3600 && $adata['enddate'] < $this->courseenddate) {
 				$canuselatepass = true;
-			} else if ($now<$adata['enddate']) {
+			} else if ($now<$adata['enddate'] && $adata['enddate'] < $this->courseenddate) {
 				$canuselatepass = true;
 			}
 		}
