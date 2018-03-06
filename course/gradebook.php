@@ -1030,6 +1030,10 @@ function gbstudisp($stu) {
 					echo '<td></td>';
 				} else if ($gbt[0][1][$i][6]==0) { //online
 					echo '<td><a href="#" class="small feedbacksh pointer" onclick="return showfb('.Sanitize::onlyInt($gbt[1][1][$i][4]).',\'A\')">', _('[Show Feedback]'), '</a></td>';
+				} else if ($gbt[0][1][$i][6]==1) { //offline
+					echo '<td><a href="#" class="small feedbacksh pointer" onclick="return showfb('.Sanitize::onlyInt($gbt[1][1][$i][2]).',\'O\')">', _('[Show Feedback]'), '</a></td>';					
+				} else if ($gbt[0][1][$i][6]==3) { //exttool
+					echo '<td><a href="#" class="small feedbacksh pointer" onclick="return showfb('.Sanitize::onlyInt($gbt[1][1][$i][2]).',\'E\')">', _('[Show Feedback]'), '</a></td>';										
 				} else {
 					echo '<td><a href="#" class="small feedbacksh pointer" onclick="return showhidefb(this,'.$i.')">', _('[Show Feedback]'), '</a><span style="display:none;" id="feedbackholder'.$i.'">'.$gbt[1][1][$i][1].'</span></td>';
 				}

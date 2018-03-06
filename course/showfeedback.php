@@ -49,6 +49,26 @@ if ($type=='A') {
 		}
 		echo '<div class="fbbox">'.Sanitize::outgoingHtml($feedback[$key]).'</div>';
 	}
+} else if ($type=='O' || $type=='E') {
+	if ($type=='O') {
+		$query = "SELECT igi.name,ig.feedback FROM imas_gbitems AS igi ";
+		$query .= "JOIN imas_grades AS ig ON igi.id=ig.gradetypeid AND ig.gradetype='offline' ";
+	} else if ($type=='E') {
+		$query = "SELECT igi.name,ig.feedback FROM imas_linkedtext AS igi ";
+		$query .= "JOIN imas_grades AS ig ON igi.id=ig.gradetypeid AND ig.gradetype='exttool' ";
+	}
+	$query .= "WHERE ig.id=? AND igi.courseid=? ";
+	$qarr = array($id, $cid);
+	if (isset($studentid)) {
+		$query .= "AND ig.userid=?";
+		$qarr[] = $userid;
+	}
+	$stm = $DBH->prepare($query);
+	$stm->execute($qarr);
+	
+	list($aname, $feedback) = $stm->fetch(PDO::FETCH_NUM);
+	echo '<h2>'.sprintf(_('Feedback on %s'), Sanitize::encodeStringForDisplay($aname)).'</h2>';
+	echo '<div class="fbbox">'.Sanitize::outgoingHtml($feedback).'</div>';
 }
 
 require("../footer.php");

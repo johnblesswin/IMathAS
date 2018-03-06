@@ -146,7 +146,7 @@ function imasrubric_record(rubricid,scoreboxid,feedbackid,qn,pointsposs,clearexi
 	}
 	tinymce.triggerSave();
 	var pastfb = $("input[name="+feedbackid+"]").val();
-	console.log(pastfb);
+
 	tinymce.EditorManager.execCommand('mceRemoveEditor',true, feedbackid);
 	var pttot = imasrubric_getpttot(rubricid);
 	if (imasrubrics[rubricid].type==0 || imasrubrics[rubricid].type==1 ) {  //score breakdown and feedback
