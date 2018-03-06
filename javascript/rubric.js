@@ -125,7 +125,6 @@ function imasrubric_show(rubricid,pointsposs,scoreboxid,feedbackid,qn,width) {
 }
 
 function rubricmousemove(evt) {
-	console.log(evt.pageX+","+rubricbase.left+","+lastrubricpos.left);
 	$('#GB_window').css('left', (evt.pageX - rubricbase.left) + lastrubricpos.left)
 	.css('top', (evt.pageY - rubricbase.top) + lastrubricpos.top);
 	return false;
@@ -142,9 +141,13 @@ function rubrictouchmove(evt) {
 
 function imasrubric_record(rubricid,scoreboxid,feedbackid,qn,pointsposs,clearexisting) {
 	var feedback = '';
-	if (qn != null && qn != 'null' && qn != '0') {
+	if (qn != null && qn != 'null' && qn != '0' && !feedbackid.match(/^fb-/)) {
 		feedback += '#'+qn+': ';
 	}
+	tinymce.triggerSave();
+	var pastfb = $("input[name="+feedbackid+"]").val();
+	console.log(pastfb);
+	tinymce.EditorManager.execCommand('mceRemoveEditor',true, feedbackid);
 	var pttot = imasrubric_getpttot(rubricid);
 	if (imasrubrics[rubricid].type==0 || imasrubrics[rubricid].type==1 ) {  //score breakdown and feedback
 		var score = 0;
@@ -165,7 +168,7 @@ function imasrubric_record(rubricid,scoreboxid,feedbackid,qn,pointsposs,clearexi
 			if (clearexisting) {
 				document.getElementById(feedbackid).value = feedback;
 			} else {
-				document.getElementById(feedbackid).value = document.getElementById(feedbackid).value + feedback;
+				document.getElementById(feedbackid).value = pastfb + feedback;
 			}
 		}
 	} else if (imasrubrics[rubricid].type==2) { //just feedback
@@ -177,7 +180,7 @@ function imasrubric_record(rubricid,scoreboxid,feedbackid,qn,pointsposs,clearexi
 		if (clearexisting) {
 			document.getElementById(feedbackid).value = feedback;
 		} else {
-			document.getElementById(feedbackid).value = document.getElementById(feedbackid).value + feedback;
+			document.getElementById(feedbackid).value = pastfb + feedback;
 		}
 	} else if (imasrubrics[rubricid].type==3 || imasrubrics[rubricid].type==4 ) {  //score total and feedback
 		loc = getRadioValue('rubricgrp');
@@ -188,9 +191,14 @@ function imasrubric_record(rubricid,scoreboxid,feedbackid,qn,pointsposs,clearexi
 			if (clearexisting) {
 				document.getElementById(feedbackid).value = feedback;
 			} else {
-				document.getElementById(feedbackid).value = document.getElementById(feedbackid).value + feedback;
+				document.getElementById(feedbackid).value = pastfb + feedback;
 			}
 		}
+	}
+	tinymce.EditorManager.execCommand('mceAddEditor',true, feedbackid);
+	
+	if (p = feedbackid.match(/^fb-(\d+)/)) {
+		revealfb(p[1]);
 	}
 	GB_hide();
 
@@ -250,4 +258,10 @@ function quicksetscore(el,score) {
 
 function markallfullscore() {
 	$('.quickgrade').click();
+}
+
+function revealfb(qn) {
+	$("#fb-"+qn+"-wrap").show();
+	$("#fb-"+qn+"-add").hide();
+	return false;
 }
