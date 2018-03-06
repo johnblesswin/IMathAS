@@ -286,6 +286,10 @@ if (isset($studentid) || $stu!=0) { //show student view
 	$pagetitle = _('Gradebook');
 	$placeinhead .= "<script type=\"text/javascript\" src=\"$imasroot/javascript/tablesorter.js\"></script>\n";
 	$placeinhead .= '<script type="text/javascript">
+		function showfb(id,type) {
+			GB_show(_("Feedback"), "showfeedback?cid="+cid+"&type="+type+"&id="+id, 500, 500);
+			return false;
+		}
 		function showhidefb(el,n) {
 			el.style.display="none";
 			document.getElementById("feedbackholder"+n).style.display = "inline";
@@ -749,7 +753,8 @@ function gbstudisp($stu) {
 		$sarr = "'S','N','N','N'";
 	}
 	if ($stu>0) {
-		echo '<th>', _('Feedback'), '<br/><a href="#" class="small pointer" onclick="return showhideallfb(this);">', _('[Show Feedback]'), '</a></th>';
+		//echo '<th>', _('Feedback'), '<br/><a href="#" class="small pointer" onclick="return showhideallfb(this);">', _('[Show Feedback]'), '</a></th>';
+		echo '<th>', _('Feedback'), '</th>';
 		$sarr .= ",'N'";
 	}
 	echo '</tr></thead><tbody>';
@@ -1023,6 +1028,8 @@ function gbstudisp($stu) {
 			if ($stu>0) {
 				if ($gbt[1][1][$i][1]=='') {
 					echo '<td></td>';
+				} else if ($gbt[0][1][$i][6]==0) { //online
+					echo '<td><a href="#" class="small feedbacksh pointer" onclick="return showfb('.Sanitize::onlyInt($gbt[1][1][$i][4]).',\'A\')">', _('[Show Feedback]'), '</a></td>';
 				} else {
 					echo '<td><a href="#" class="small feedbacksh pointer" onclick="return showhidefb(this,'.$i.')">', _('[Show Feedback]'), '</a><span style="display:none;" id="feedbackholder'.$i.'">'.$gbt[1][1][$i][1].'</span></td>';
 				}

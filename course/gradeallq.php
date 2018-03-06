@@ -65,6 +65,9 @@
 						}
 					}
 				} else if ($kp[0]=='fb') {
+					if ($v=='<p></p>') {
+						$v = '';
+					}
 					$allfeedbacks[$kp[2]][$kp[1]] = $v;
 				}
 			}
@@ -121,7 +124,11 @@
 						}
 					}
 					foreach ($grpfeedback[$line['agroupid']] as $loc=>$sv) {
-						$feedback["Q".$loc] = $sv;
+						if (trim(strip_tags($sv))=='') {
+							unset($feedback["Q".$loc]);
+						} else {
+							$feedback["Q".$loc] = $sv;
+						}
 					}
 				} else {
 					foreach ($allscores[$line['id']] as $loc=>$sv) {
@@ -132,7 +139,13 @@
 						}
 					}
 					foreach ($allfeedbacks[$line['id']] as $loc=>$sv) {
-						$feedback["Q".$loc] = $sv;
+						if (trim(strip_tags($sv))=='') {
+							echo "Clearing on $loc val $sv.";
+							unset($feedback["Q".$loc]);
+						} else {
+							echo "Saving on $loc val $sv.";
+							$feedback["Q".$loc] = $sv;
+						}
 					}
 					//$feedback = $_POST['feedback-'.$line['id']];
 				}
@@ -158,6 +171,7 @@
 			$query .= "ON DUPLICATE KEY UPDATE bestscores=VALUES(bestscores),feedback=VALUES(feedback)";
 			$stm = $DBH->prepare($query);
 			$stm->execute($updatedata);
+			exit;
 		}
 		if (isset($_GET['quick'])) {
 			echo "saved";
