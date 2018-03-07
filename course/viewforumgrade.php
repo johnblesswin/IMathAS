@@ -22,6 +22,8 @@
 		$uid = $userid;
 	}
 	$forumid = intval($_GET['fid']);
+	
+	$embedded = !empty($_GET['embed']);
 
 	if (($isteacher || $istutor) && (isset($_POST['score']) || isset($_POST['newscore']))) {
 		if ($istutor) {
@@ -60,6 +62,10 @@
 			foreach($_POST['score'] as $k=>$sc) {
 				if (trim($k)=='') {continue;}
 				$sc = trim($sc);
+				$_POST['feedback'.$k] = Sanitize::incomingHtml(trim($_POST['feedback'.$k]));
+				if ($_POST['feedback'.$k] == '<p></p>') {
+					$_POST['feedback'.$k] = '';
+				}
 				if ($sc!='') {
 					//DB $query = "UPDATE imas_grades SET score='$sc',feedback='{$_POST['feedback'][$k]}' WHERE refid='$k' AND gradetype='forum' AND gradetypeid='$forumid' AND userid='$uid'";
 					//DB mysql_query($query) or die("Query failed : " . mysql_error());
@@ -87,7 +93,14 @@
 				}
 			}
 		}
-		header('Location: ' . $GLOBALS['basesiteurl'] . "/course/gradebook.php?stu=$stu&cid=$cid");
+		if ($embedded) {
+			echo '<html><body><p>'._('Saved').'</p>';
+			echo '<p><button type=button onclick="parent.GB_hide()">'._('Done').'</button></p>';
+			echo '</body></html>';
+			exit;
+		} else {
+			header('Location: ' . $GLOBALS['basesiteurl'] . "/course/gradebook.php?stu=$stu&cid=$cid");
+		}
 		exit;
 	}
 	
@@ -119,10 +132,16 @@
 		 }
 		 </style>';
 	}
+	if ($embedded) {
+		$flexwidth = true;
+		$nologo = true;
+	}
 	require("../header.php");
-	echo "<div class=breadcrumb>$breadcrumbbase <a href=\"course.php?cid=$cid\">".Sanitize::encodeStringForDisplay($coursename)."</a> ";
-	echo "&gt; <a href=\"gradebook.php?stu=".Sanitize::encodeUrlParam($stu)."&cid=".Sanitize::encodeUrlParam($cid)."\">Gradebook</a> ";
-	echo "&gt; View Forum Grade</div>";
+	if (!$embedded) {
+		echo "<div class=breadcrumb>$breadcrumbbase <a href=\"course.php?cid=$cid\">".Sanitize::encodeStringForDisplay($coursename)."</a> ";
+		echo "&gt; <a href=\"gradebook.php?stu=".Sanitize::encodeUrlParam($stu)."&cid=".Sanitize::encodeUrlParam($cid)."\">Gradebook</a> ";
+		echo "&gt; View Forum Grade</div>";
+	}
 
 	echo '<div id="headerviewforumgrade" class="pagetitle"><h2>View Forum Grade</h2></div>';
 	echo "<p>Grades on forum <b>".Sanitize::encodeStringForDisplay($row[2])."</b> for <b>".Sanitize::encodeStringForDisplay($row[1])." ".Sanitize::encodeStringForDisplay($row[0])."</b></p>";
@@ -152,7 +171,8 @@
 	}
 
 	if ($caneditscore) {
-		echo "<form method=\"post\" action=\"viewforumgrade.php?cid=$cid&fid=$forumid&stu=$stu&uid=$uid\">";
+		$embedstr = ($embedded?'&embed=true':'');
+		echo "<form method=\"post\" action=\"viewforumgrade.php?cid=$cid&fid=$forumid&stu=$stu&uid=$uid$embedstr\">";
 	}
 
 	echo '<table class="gb"><thead><tr><th>Post</th><th>Points</th><th>Private Feedback</th></tr></thead><tbody>';

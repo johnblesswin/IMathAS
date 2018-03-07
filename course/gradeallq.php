@@ -11,7 +11,6 @@
 		exit;
 	}
 
-
 	$cid = Sanitize::courseId($_GET['cid']);
 	$stu = $_GET['stu'];
 	if (isset($_GET['gbmode']) && $_GET['gbmode']!='') {
@@ -65,8 +64,10 @@
 						}
 					}
 				} else if ($kp[0]=='fb') {
-					if ($v=='<p></p>') {
+					if ($v=='' || $v=='<p></p>') {
 						$v = '';
+					} else {
+						$v = Sanitize::incomingHtml($v);
 					}
 					$allfeedbacks[$kp[2]][$kp[1]] = $v;
 				}
@@ -109,7 +110,11 @@
 			$GLOBALS['assessver'] = $line['ver'];
 			$feedback = json_decode($line['feedback'], true);
 			if ($feedback === null) {
-				$feedback = array('Z'=>$line['feedback']);
+				if ($line['feedback']=='') {
+					$feedback = array();
+				} else {
+					$feedback = array('Z'=>$line['feedback']);
+				}
 			}
 			if ((!$onepergroup && isset($allscores[$line['id']])) || ($onepergroup && isset($grpscores[$line['agroupid']]))) {//if (isset($locs[$line['id']])) {
 				$sp = explode(';',$line['bestscores']);
@@ -140,10 +145,8 @@
 					}
 					foreach ($allfeedbacks[$line['id']] as $loc=>$sv) {
 						if (trim(strip_tags($sv))=='') {
-							echo "Clearing on $loc val $sv.";
 							unset($feedback["Q".$loc]);
 						} else {
-							echo "Saving on $loc val $sv.";
 							$feedback["Q".$loc] = $sv;
 						}
 					}
@@ -153,10 +156,14 @@
 				if (count($sp)>1) {
 					$scorelist .= ';'.$sp[1].';'.$sp[2];
 				}
-
+				if (count($feedback)>0) {
+					$feedbackout = json_encode($feedback);
+				} else {
+					$feedbackout = '';
+				}
 				//$stm2 = $DBH->prepare("UPDATE imas_assessment_sessions SET bestscores=:bestscores,feedback=:feedback WHERE id=:id");
 				//$stm2->execute(array(':bestscores'=>$scorelist, ':feedback'=>$feedback, ':id'=>$line['id']));
-				array_push($updatedata, $line['id'], $scorelist, json_encode($feedback));
+				array_push($updatedata, $line['id'], $scorelist, $feedbackout);
 
 				if (strlen($line['lti_sourcedid'])>1) {
 					//update LTI score
@@ -171,8 +178,8 @@
 			$query .= "ON DUPLICATE KEY UPDATE bestscores=VALUES(bestscores),feedback=VALUES(feedback)";
 			$stm = $DBH->prepare($query);
 			$stm->execute($updatedata);
-			exit;
 		}
+
 		if (isset($_GET['quick'])) {
 			echo "saved";
 		} else if ($page == -1) {
@@ -246,7 +253,9 @@
 	$placeinhead .= "}\n";
 	$placeinhead .= 'var GBdeffbtext ="'.Sanitize::encodeStringForDisplay($deffbtext).'";';
 	$placeinhead .= '</script>';
-	$placeinhead .= '<script type="text/javascript"> initeditor("divs","fbbox",null,true);</script>';
+	if ($sessiondata['useed']!=0) {
+		$placeinhead .= '<script type="text/javascript"> initeditor("divs","fbbox",null,true);</script>';
+	}
 	$placeinhead .= '<style type="text/css"> .fixedbottomright {position: fixed; right: 10px; bottom: 10px;}</style>';
 	require("../includes/rubric.php");
 	$sessiondata['coursetheme'] = $coursetheme;
@@ -599,9 +608,15 @@
 			//echo " &nbsp; <a href=\"gradebook.php?stu=$stu&gbmode=$gbmode&cid=$cid&asid={$line['id']}&clearq=$i\">Clear Score</a>";
 			echo "<br/>Feedback: ";
 			//<textarea cols=50 rows=".($page==-1?1:3)." id=\"feedback-".Sanitize::onlyInt($line['id'])."\" name=\"feedback-".Sanitize::onlyInt($line['id'])."\">".Sanitize::encodeStringForDisplay($line['feedback'])."</textarea>";
-			echo '<div class="fbbox" id="fb-'.$loc.'-'.Sanitize::onlyInt($line['id']).'">';
-			echo Sanitize::outgoingHtml($feedback["Q$loc"]);
-			echo '</div>';
+			if ($sessiondata['useed']==0) {
+				echo '<br/><textarea cols="60" rows="2" class="fbbox" id="fb-'.$loc.'-'.Sanitize::onlyInt($line['id']).'" name="fb-'.$loc.'-'.Sanitize::onlyInt($line['id']).'">';
+				echo Sanitize::encodeStringForDisplay($feedback["Q$loc"]);
+				echo '</textarea>';
+			} else {
+				echo '<div class="fbbox" id="fb-'.$loc.'-'.Sanitize::onlyInt($line['id']).'">';
+				echo Sanitize::outgoingHtml($feedback["Q$loc"]);
+				echo '</div>';
+			}
 			echo '<br/>Question #'.($loc+1);
 			echo ". <a target=\"_blank\" href=\"$imasroot/msgs/msglist.php?" . Sanitize::generateQueryStringFromMap(array(
 					'cid' => $cid, 'add' => 'new', 'quoteq' => "{$loc}-{$qsetid}-{$seeds[$loc]}-$aid-{$line['ver']}",

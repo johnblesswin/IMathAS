@@ -457,7 +457,7 @@
 						}
 					}
 					if (trim(strip_tags($_POST["fb-$i"])) != '') { 
-						$feedback["Q$i"] = myhtmLawed($_POST["fb-$i"]);
+						$feedback["Q$i"] = Sanitize::incomingHtml($_POST["fb-$i"]);
 					}
 					$i++;
 				}
@@ -465,7 +465,14 @@
 				if (count($bsp)>1) { //tack on rawscores and firstscores
 					$scorelist .= ';'.$bsp[1].';'.$bsp[2];
 				}
-				$feedback['Z'] = myhtmLawed($_POST['feedback']);
+				if (trim(strip_tags($_POST['feedback'])) != '') {
+					$feedback['Z'] = Sanitize::incomingHtml($_POST['feedback']);
+				}
+				if (count($feedback)>0) {
+					$feedbackout = json_encode($feedback);
+				} else {
+					$feedbackout = '';
+				}
 
 				if (isset($_POST['updategroup'])) {
 					$qp = getasidquery($_GET['asid']);
@@ -474,14 +481,14 @@
 					$query = "UPDATE imas_assessment_sessions SET bestscores=:bestscores,feedback=:feedback";
 					$query .=  " WHERE {$qp[0]}=:qval AND assessmentid=:assessmentid";
 					$stm = $DBH->prepare($query);
-					$stm->execute(array(':bestscores'=>$scorelist, ':feedback'=>json_encode($feedback), ':assessmentid'=>$qp[2], ':qval'=>$qp[1]));
+					$stm->execute(array(':bestscores'=>$scorelist, ':feedback'=>$feedbackout, ':assessmentid'=>$qp[2], ':qval'=>$qp[1]));
 					//$query .= getasidquery($_GET['asid']);
 				} else {
 					//DB $query = "UPDATE imas_assessment_sessions SET bestscores='$scorelist',feedback='$feedback'";
 					//DB $query .= "WHERE id='{$_GET['asid']}'";
 					$query = "UPDATE imas_assessment_sessions SET bestscores=:bestscores,feedback=:feedback WHERE id=:id";
 					$stm = $DBH->prepare($query);
-					$stm->execute(array(':bestscores'=>$scorelist, ':feedback'=>json_encode($feedback), ':id'=>$_GET['asid']));
+					$stm->execute(array(':bestscores'=>$scorelist, ':feedback'=>$feedbackout, ':id'=>$_GET['asid']));
 				}
 				//DB $q2 = "SELECT assessmentid,lti_sourcedid FROM imas_assessment_sessions WHERE id='{$_GET['asid']}'";
 				//DB $res = mysql_query($q2) or die("Query failed : $q2 " . mysql_error());
@@ -520,7 +527,9 @@
 			$placeinhead = '<script type="text/javascript" src="'.$imasroot.'/javascript/rubric.js?v=031417"></script>';
 			require("../includes/rubric.php");
 			$placeinhead .= '<script type="text/javascript" src="'.$imasroot.'/javascript/gb-scoretools.js?v=120617"></script>';
-			$placeinhead .= '<script type="text/javascript"> initeditor("divs","fbbox",null,true);</script>';
+			if ($sessiondata['useed']!=0) {
+				$placeinhead .= '<script type="text/javascript"> initeditor("divs","fbbox",null,true);</script>';
+			}
 		}
 		require("../assessment/header.php");
 		echo "<style type=\"text/css\">p.tips {	display: none;} .pseudohidden {visibility:hidden;position:absolute;}\n</style>\n";
@@ -984,7 +993,12 @@
 				} else {
 					echo '<span id="fb-'.$i.'-wrap">';
 				}
-				echo '<br/>Feedback:<br/><div id="fb-'.$i.'" name="fb-'.$i.'" class="fbbox" cols=60 rows=4>'.Sanitize::outgoingHtml($feedback["Q$i"]).'</div>';
+				echo '<br/>Feedback:<br/>';
+				if ($sessiondata['useed']==0) {
+					echo '<textarea id="fb-'.$i.'" name="fb-'.$i.'" class="fbbox" cols=60 rows=2>'.Sanitize::encodeStringForDisplay($feedback["Q$i"]).'</textarea>';
+				} else {
+					echo '<div id="fb-'.$i.'" class="fbbox" cols=60 rows=2>'.Sanitize::outgoingHtml($feedback["Q$i"]).'</div>';
+				}
 				echo '</span>';
 					
 				if ($canedit && getpts($scores[$i])==$pts[$questions[$i]]) {
@@ -1101,7 +1115,7 @@
 			} else { //is student
 				if (!empty($feedback["Q$i"])) {
 					echo '<br/>Feedback:';
-					echo '<div class="fbbox">'.Sanitize::outgoingHtml($feedback["Q$i"]).'</div>'; 
+					echo '<div class="fbbox">'.Sanitize::outgoingHtml($feedback["Q$i"]).'</div>';
 				}
 			}
 			echo "</div>\n";
@@ -1109,9 +1123,20 @@
 		}
 		echo "<p></p><div class=review>Total: $total/$totalpossible</div>\n";
 		if ($canedit && !isset($_GET['lastver']) && !isset($_GET['reviewver'])) {
-			echo "<p>Feedback to student:<br/><div cols=60 rows=4 id=\"feedback\" name=\"feedback\" class=\"fbbox\">";
-			echo Sanitize::outgoingHtml($feedback["Z"]);
-			echo "</div></p>";
+			echo "<p>Feedback to student:<br/>";
+			if ($sessiondata['useed']==0) {
+				echo "<textarea cols=60 rows=4 id=\"feedback\" name=\"feedback\" class=\"fbbox\">";
+				if (!empty($feedback["Z"])) {
+					echo Sanitize::encodeStringForDisplay($feedback["Z"]);
+				}
+				echo "</textarea></p>";
+			} else {
+				echo "<div cols=60 rows=4 id=\"feedback\" class=\"fbbox\">";
+				if (!empty($feedback["Z"])) {
+					echo Sanitize::outgoingHtml($feedback["Z"]);
+				}
+				echo "</div></p>";
+			}
 			if ($line['agroupid']>0) {
 				echo "<p>Update grade for all group members? <input type=checkbox name=\"updategroup\" checked=\"checked\" /></p>";
 			}
@@ -1134,7 +1159,9 @@
 
 		} else if (trim($line['feedback'])!='') {
 			echo "<p>Instructor Feedback:<div class=\"fbbox\">";
-			echo Sanitize::outgoingHtml($feedback["Z"]); 
+			if (!empty($feedback["Z"])) {
+				echo Sanitize::outgoingHtml($feedback["Z"]);
+			}
 			echo "</div></p>";
 			if (!isset($sessiondata['ltiitemtype']) || $sessiondata['ltiitemtype']!=0) {
 				echo "<p><a href=\"gradebook.php?stu=$stu&cid=$cid\">Return to GradeBook</a></p>\n";

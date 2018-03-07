@@ -185,6 +185,10 @@
 			foreach($_POST['score'] as $k=>$sc) {
 				if (trim($k)=='') { continue;}
 				$sc = trim($sc);
+				$_POST['feedback'.$k] = Sanitize::incomingHtml(trim($_POST['feedback'.$k]));
+				if ($_POST['feedback'.$k] == '<p></p>') {
+					$_POST['feedback'.$k] = '';
+				}
 				if ($sc!='') {
 					//DB $query = "UPDATE imas_grades SET score='$sc',feedback='{$_POST['feedback'][$k]}' WHERE userid='$k' AND gradetype='offline' AND gradetypeid='{$_GET['gbitem']}'";
 					//DB mysql_query($query) or die("Query failed : " . mysql_error());
@@ -203,6 +207,10 @@
 		if (isset($_POST['newscore'])) {
 			foreach($_POST['newscore'] as $k=>$sc) {
 				if (trim($k)=='') {continue;}
+				$_POST['feedback'.$k] = Sanitize::incomingHtml(trim($_POST['feedback'.$k]));
+				if ($_POST['feedback'.$k] == '<p></p>') {
+					$_POST['feedback'.$k] = '';
+				}
 				if ($sc!='') {
 					//DB $query = "INSERT INTO imas_grades (gradetype,gradetypeid,userid,score,feedback) VALUES ";
 					//DB $query .= "('offline','{$_GET['gbitem']}','$k','$sc','{$_POST['feedback'][$k]}')";
