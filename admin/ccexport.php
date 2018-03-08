@@ -17,31 +17,7 @@ if (!isset($teacherid)) {
 	exit;
 }
 
-$pagetitle = "CC Export";
-$loadmathfilter = 1;
-$loadgraphfilter = 1;
-if (!defined('ENT_XML1')) {
-	define('ENT_XML1',ENT_QUOTES);
-}
-$placeinhead = '<script type="text/javascript">
- function updatewhichsel(el) {
-   if (el.value=="select") { $("#itemselectwrap").show();}
-   else {$("#itemselectwrap").hide()};
- }
- </script>';
-$placeinhead .= '<style type="text/css">
- .nomark.canvasoptlist li { text-indent: -25px; margin-left: 25px;}
- </style>';
-require("../header.php");
-echo "<div class=breadcrumb>$breadcrumbbase <a href=\"../course/course.php?cid=$cid\">"
-	. Sanitize::encodeStringForDisplay($coursename) . "</a> &gt; Common Cartridge Export</div>\n";
 
-echo '<div class="cpmid">';
-if (!isset($CFG['GEN']['noimathasexportfornonadmins']) || $myrights>=75) {
-	echo '<a href="exportitems2.php?cid='.$cid.'">Export for another IMathAS system or as a backup for this system</a> | ';
-}
-echo '<a href="jsonexport.php?cid='. $cid.'" name="button">Export OEA JSON</a>';
-echo '</div>';
 
 $path = realpath("../course/files");
 
@@ -49,16 +25,27 @@ if (isset($_GET['delete'])) {
 	unlink($path.'/CCEXPORT'.$cid.'.imscc');
 	echo "export file deleted";
 } else if (isset($_GET['create'])) {
+	error_reporting(0);
+	$loadmathfilter = 1;
+	$loadgraphfilter = 1;
+	require_once("../filter/filter.php");
+	if (!defined('ENT_XML1')) {
+		define('ENT_XML1',ENT_QUOTES);
+	}
 	require_once("../includes/filehandler.php");
-	$usechecked = ($_POST['whichitems']=='select');
+	$usechecked = ($_POST['whichitems']=='select' || empty($_POST['whichitems']));
 	if ($usechecked) {
 		$checked = $_POST['checked'];
 	} else {
 		$checked = array();
 	}
 
+	if ($_POST['lms']=='canvas') {
+		$linktype = 'canvas';
+	} else {
+		$linktype = 'url';
+	}
 
-	$linktype = $_POST['type'];
 	$iteminfo = array();
 	//DB $query = "SELECT id,itemtype,typeid FROM imas_items WHERE courseid=$cid";
 	//DB $r = mysql_query($query) or die("Query failed : " . mysql_error());
@@ -740,7 +727,7 @@ if (isset($_GET['delete'])) {
 	// close and save archive
 	$zip->close();
 	rename($path.'/CCEXPORT'.$cid.'.zip',$path.'/CCEXPORT'.$cid.'.imscc');
-	echo "Archive created successfully.";
+	//echo "Archive created successfully.";
 
 	function rrmdir($path) {
 	  if (is_file($path) || is_link($path)) {
@@ -760,15 +747,47 @@ if (isset($_GET['delete'])) {
 	 }
 
 	rrmdir($newdir);
-
-	echo "<br/><a href=\"$imasroot/course/files/CCEXPORT$cid.imscc\">Download</a><br/>";
-	echo "Once downloaded, keep things clean and <a href=\"ccexport.php?cid=$cid&delete=true\">Delete</a> the export file off the server.";
+	$archive_file_name = 'CCEXPORT'.$cid.'.imscc';
+	//echo "<br/><a href=\"$imasroot/course/files/CCEXPORT$cid.imscc\">Download</a><br/>";
+	//echo "Once downloaded, keep things clean and <a href=\"ccexport.php?cid=$cid&delete=true\">Delete</a> the export file off the server.";
+	header("Content-type: application/vnd.ims.imsccv1p1"); 
+	header("Content-Disposition: attachment; filename=$archive_file_name");
+	header("Content-length: " . filesize($path.'/'.$archive_file_name));
+	header("Pragma: no-cache"); 
+	header("Expires: 0"); 
+	readfile($path.'/'.$archive_file_name);
+	unlink($path.'/'.$archive_file_name);
 } else {
 
+	$pagetitle = "CC Export";
+	
+	$placeinhead = '<script type="text/javascript">
+	 function updatewhichsel(el) {
+	   if (el.value=="select") { $("#itemselectwrap").show();}
+	   else {$("#itemselectwrap").hide()};
+	 }
+	 function updatelms(el) {
+	   $(".lmsblock").hide();
+	   $("#lms"+el.value).show();
+	 }
+	 </script>';
+	$placeinhead .= '<style type="text/css">
+	 .nomark.canvasoptlist li { text-indent: -25px; margin-left: 25px;}
+	 </style>';
+	require("../header.php");
+	echo "<div class=breadcrumb>$breadcrumbbase <a href=\"../course/course.php?cid=$cid\">"
+		. Sanitize::encodeStringForDisplay($coursename) . "</a> &gt; Common Cartridge Export</div>\n";
+	
+	echo '<div class="cpmid">';
+	if (!isset($CFG['GEN']['noimathasexportfornonadmins']) || $myrights>=75) {
+		echo '<a href="exportitems2.php?cid='.$cid.'">Export for another IMathAS system or as a backup for this system</a> | ';
+	}
+	echo '<a href="jsonexport.php?cid='. $cid.'" name="button">Export OEA JSON</a>';
+	echo '</div>';
 
-	$stm = $DBH->prepare("SELECT itemorder,dates_by_lti FROM imas_courses WHERE id=:id");
+	$stm = $DBH->prepare("SELECT itemorder,dates_by_lti,ltisecret FROM imas_courses WHERE id=:id");
 	$stm->execute(array(':id'=>$cid));
-	list($items, $datesbylti) = $stm->fetch(PDO::FETCH_NUM);
+	list($items, $datesbylti, $ltisecret) = $stm->fetch(PDO::FETCH_NUM);
 	$items = unserialize($items);
 
 	$ids = array();
@@ -793,28 +812,26 @@ if (isset($_GET['delete'])) {
 	echo 'anything.  Otherwise, you can use the LTI secret you set in your course settings, along with the key LTIkey_###_0 (if you want students ';
 	echo 'to create an account on this system) or LTIkey_###_1 (if you want students to only be able to log in through the LMS - recommended), where ### is ';
 	echo 'replaced with your course key.  <b>Important:</b> The key form LTIkey_###_1 is necessary if you want grades from '.$installname.' to be ';
-	echo 'reported back to the LMS automatically.  ';
-	echo 'If you do not see the LTI key setting in your course settings, then your system administrator does ';
-	echo 'not have LTI enabled on your system, and you cannot use this feature.</p>';
+	echo 'reported back to the LMS automatically.</p> ';
 	if ($enablebasiclti==false) {
-		echo '<p class="noticetext">Note: Your system does not currenltly have LTI enabled.  Contact your system administrator</p>';
+		echo '<p class="noticetext">Note: Your system does not currently have LTI enabled.  Contact your system administrator</p>';
 	}
-	echo '<form id="qform" method="post" action="ccexport.php?cid='.$cid.'&create=true">';
+	echo '<form id="qform" method="post" action="ccexport.php?cid='.$cid.'&create=true" class="nolimit">';
 	?>
-	<input type="hidden" name="whichitems" value="select"/>
 	<p>Items to export: <select name="whichitems" onchange="updatewhichsel(this)">
-		<option value="all">Export entire course</option>
+		<option value="all" selected>Export entire course</option>
 		<option value="select">Select individual items to export</option>
 		</select>
-		<div id="itemselectwrap" style="display:none;">
+	</p>
+	<div id="itemselectwrap" style="display:none;">
 
-		Check: <a href="#" onclick="return chkAllNone('qform','checked[]',true)">All</a> <a href="#" onclick="return chkAllNone('qform','checked[]',false)">None</a>
+	Check: <a href="#" onclick="return chkAllNone('qform','checked[]',true)">All</a> <a href="#" onclick="return chkAllNone('qform','checked[]',false)">None</a>
 
-		<table cellpadding=5 class=gb>
-		<thead>
-			<tr><th></th><th>Type</th><th>Title</th></tr>
-		</thead>
-		<tbody>
+	<table cellpadding=5 class=gb>
+	<thead>
+		<tr><th></th><th>Type</th><th>Title</th></tr>
+	</thead>
+	<tbody>
 <?php
 	$alt=0;
 	for ($i = 0 ; $i<(count($ids)); $i++) {
@@ -832,9 +849,152 @@ if (isset($_GET['delete'])) {
 		</tbody>
 		</table>
 	</div>
+	<p>Your LMS: <select name="lms" onchange="updatelms(this)">
+		<option value="canvas" selected>Canvas</option>
+		<option value="bb">BlackBoard</option>
+		<option value="d2l">D2L Brightspace</option>
+		<option value="moodle">Moodle</option>
+		<option value="other">Other</option>
+		</select>
+	</p>
+	<div id="lmscanvas" class="lmsblock">
+		<h4>Canvas</h4>
+		<ul class="nomark canvasoptlist">
+		<li><input type=checkbox name=includeappconfig value=1 checked /> Include App Config? Do not include it if you have site-wide credentials,
+			or if you are doing a second import into a course that already has a configuration.</li>
+		<li><input type=checkbox name=includegbcats value=1 checked /> Include <?php echo $installname;?> gradebook setup and categories</li>
+		<li><input type=checkbox name=includeduedates value=1 checked /> Include <?php echo $installname;?> due dates for assessments</li>
+		<li><input type=checkbox name=includestartdates value=1 /> Include <?php echo $installname;?> start dates for assessments and blocks<br/>
+			<span class="small">Blocks will only include the start date if they are set to hide contents from students when not available.</span></li>
+		</ul>
+		<p><button type="submit">Download CC Export</button></p>
+		<p>To import the cartridge in Canvas:</p>
+		<ul>
+			<li>Go to Settings, then Import Course Content</li>
+			<li>For Content Type, select Canvas Course Export Package.  
+				Select the export file from your computer,
+				and select All Content.  Click Import.</li>
+			<li>If are setting up a course-level App Config (based on your selection above) follow these steps.
+			    If you have a course-level configuration, skip ahead.
+				<ul>
+				<li>Go to Settings, then Apps, then View App Configurations</li>
+				<li>Locate for the <?php echo $installname;?> App. Use the gear icon dropdown to select Edit</li>
+				<li>For the consumer key, enter <b><?php echo 'LTIkey_'.$cid.'1'; ?></b></li>
+				<?php
+				if ($ltisecret=='') {
+					echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
+					echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+				} else {
+					echo '<li>For Shared Secret enter <b>'.$ltisecret.'</b></li>';
+				}
+				?>
+				<li>Click Submit</li>
+				</ul>
+			</li>
+		</ul>
+		<p><a href="https://www.youtube.com/watch?v=Xmum_WUnh2c" target="_blank">Setup video</a></p>
+	
+	</div>
+	<div id="lmsbb" style="display:none" class="lmsblock">
+		<h4>BlackBoard</h4>
+		<p><button type="submit">Download CC Export</button></p>
+		<p>To import the cartridge in BlackBoard:</p>
+		<ul>
+			<li>Go to Packages and Utilities, then Import Package</li>
+			<li>Click Import Package</li>
+			<li>Select the export file from your computer, click Select All
+			    to select all course materials, then click Submit.</li>
+			<li>If your school has a global key and secret setup, skip ahead.  
+			    If you need to set up a course-level configuration, follow these steps.
+			    	<ul>
+			    	<li>To to Packages and Utilities, then Manage LTI Links</li>
+			    	<li>If the links are listed as Working, then you have an existing configuration,
+			          and do not need to continue.</li>
+			        <li>For one of the links with status listed as Broken, use the drop-down menu
+			          that shows when hovering over the link name and select Edit Credentials.</li>
+			        <li>For the Tool Provider Key, enter <b><?php echo 'LTIkey_'.$cid.'1'; ?></b></li>
+				<?php
+				if ($ltisecret=='') {
+					echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
+					echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+				} else {
+					echo '<li>For Tool Provider Secret enter <b>'.$ltisecret.'</b></li>';
+				}
+				?>
+				<li>Check the box "Apply these credentials to all links"</li>
+				<li>Click Submit</li>
+				</ul>
+			</li>
+			<li>To enable grade return, Blackboard requires some additional steps:
+				<ul>
+				<li>Return to the main course page in Blackboard.</li>
+				<li>For each assessment link that was imported, use the drop-down menu and select Edit</li>
+				<li>Set the Enable Evaluation option to Yes, specify the points possible (it does not 
+				    need to match the points possible in <?php echo $installname;?>), and set a Due Date if desired.</li>
+				</ul>
+			</li>
+		</ul>
+		<p><a href="https://www.youtube.com/watch?v=krTOVGS7sTk" target="_blank">Setup video</a></p>
+	</div>
+	<div id="lmsmoodle" style="display:none" class="lmsblock">
+		<h4>Moodle</h4>
+		<p><button type="submit">Download CC Export</button></p>
+		<p>Import the cartridge into your LMS. If your school has a global key and secret setup, skip ahead.
+		   Otherwise, you'll likely need to configure the LTI connection by providing the key and secret, which
+		   can be found on the <a href="forms.php?action=modify&id=<?php echo $cid;?>&cid=<?php echo $cid;?>">Course Settings</a> page.
+		</p>
+		<p>Be aware that in Moodle, LTI assessments may not show in the gradebook columns
+		   until a student started working on an assignment.</p>
+	</div>
+	<div id="lmsd2l" style="display:none" class="lmsblock">
+		<h4>D2L / Brightspace</h4>
+		<p><button type="submit">Download CC Export</button></p>
+		<p>Import the cartridge into your LMS. If your school has a global key and secret setup, skip ahead.
+		   Otherwise, you'll likely need to configure the LTI connection by providing the key and secret, which
+		   can be found on the <a href="forms.php?action=modify&id=<?php echo $cid;?>&cid=<?php echo $cid;?>">Course Settings</a> page.
+		</p>
+		<p>Be aware that in D2L, LTI assessments may not show in the gradebook columns
+		   until a student started working on an assignment.</p>
+	</div>
+	<div id="lmsother" style="display:none" class="lmsblock">
+		<h4>Other</h4>
+		<p><button type="submit">Download CC Export</button></p>
+		<p>Import the cartridge into your LMS. If your school has a global key and secret setup, skip ahead.
+		   Otherwise, you'll likely need to configure the LTI connection by providing the key and secret, which
+		   can be found on the <a href="forms.php?action=modify&id=<?php echo $cid;?>&cid=<?php echo $cid;?>">Course Settings</a> page.
+		</p>
+		
+	</div>
+	
+	<div>
+		<h4>Establishing the Connection</h4>
+		<ul>
+		<li>Click one of the assessment links in your course.</li>
+		<li>If this is your first time using this key and secret, <?php echo $installname;?> will
+		    ask you, the teacher, to sign into your <?php echo $installname;?> account.  This is necessary to
+		    establish a connection between your LMS account and your <?php echo $installname;?> account.  
+		    You will not need to do this step again, and students will not be asked to sign in 
+		    and will not need a <?php echo $installname;?> account.</li>
+		<li>Follow the prompts to associate the LMS course with your existing <?php echo $installname;?> course 
+		    or create a copy.</li>
+		<li>Once complete, all the LTI links in your LMS should work.</li>
+		<li>Be aware:
+			<ul>
+			<li>Links, files, forums, and and text items were imported into your LMS.  Changing
+			    them in <?php echo $installname;?> will not change them in your LMS</li>
+			<li>If you change assessment settings or the questions in an assessment in <?php echo $installname;?>,
+			    those changes will show up when the assessment is launched from the LMS</li>
+			<li>Any new items added in <?php echo $installname;?>, including new assessments, will not
+			    automatically show up in the LMS; you would need to repeat the export/import process.</li>
+			<li>If configured, grades will be sent from <?php echo $installname;?> to the LMS immediately 
+			    every time the student completes a question, but the LMS may delay updating the grade.</li>
+			</ul>
+		</li>
+		</ul>
+	</div>
 	<?php
 	//echo "<p><button type=\"submit\" name=\"type\" value=\"custom\">Create CC Export with LTI placements as custom fields (works in BlackBoard)</button></p>";
-	echo "<p><button type=\"submit\" name=\"type\" value=\"url\">Create CC Export with LTI placements in URLs (works in BlackBoard and Moodle)</button></p>";
+	/*echo "<p><button type=\"submit\" name=\"type\" value=\"url\">Create CC Export with LTI placements in URLs (works in BlackBoard and Moodle)</button></p>";
 	echo '<p>If exporting for Canvas: </p>';
 	echo '<ul class="nomark canvasoptlist">';
 	echo '<li><input type=checkbox name=includeappconfig value=1 checked /> Include App Config? Do not include it if you have site-wide credentials, ';
@@ -846,6 +1006,7 @@ if (isset($_GET['delete'])) {
 	echo '<li><input type=checkbox name=datesbylti value=1 '.($datesbylti>0?'checked':'').' /> Allow Canvas to set '.Sanitize::encodeStringForDisplay($installname).' due dates<br/>';
 	echo ' <span class="small">This option can also be set on the Course Settings page.</span></li>';
 	echo "</ul><p><button type=\"submit\" name=\"type\" value=\"canvas\">Create CC+custom Export (works in Canvas)</button></p>";
+	*/
 	echo '</form>';
 
 }
