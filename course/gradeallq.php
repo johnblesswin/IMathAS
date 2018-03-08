@@ -606,7 +606,7 @@
 
 			//echo " <a target=\"_blank\" href=\"$imasroot/msgs/msglist.php?cid=$cid&add=new&quoteq=$i-$qsetid-{$seeds[$i]}&to={$_GET['uid']}\">Use in Msg</a>";
 			//echo " &nbsp; <a href=\"gradebook.php?stu=$stu&gbmode=$gbmode&cid=$cid&asid={$line['id']}&clearq=$i\">Clear Score</a>";
-			echo "<br/>Feedback: ";
+			echo "<br/>"._("Question Feedback").": ";
 			//<textarea cols=50 rows=".($page==-1?1:3)." id=\"feedback-".Sanitize::onlyInt($line['id'])."\" name=\"feedback-".Sanitize::onlyInt($line['id'])."\">".Sanitize::encodeStringForDisplay($line['feedback'])."</textarea>";
 			if ($sessiondata['useed']==0) {
 				echo '<br/><textarea cols="60" rows="2" class="fbbox" id="fb-'.$loc.'-'.Sanitize::onlyInt($line['id']).'" name="fb-'.$loc.'-'.Sanitize::onlyInt($line['id']).'">';

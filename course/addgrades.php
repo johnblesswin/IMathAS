@@ -608,11 +608,11 @@ at <input type=text size=10 name=stime value="<?php echo Sanitize::encodeStringF
 		if ($sessiondata['useed']==0) {
 			echo '<input type=button value="Expand Feedback Boxes" onClick="togglefeedback(this)"/> ';
 		}
-		echo '<button type="button" id="useqa" onclick="togglequickadd(this)">'._("Use Quicksearch Entry").'</button>';
 		if ($hassection) {
 			echo "<script type=\"text/javascript\" src=\"$imasroot/javascript/tablesorter.js\"></script>\n";
 		}
 		if ($_GET['grades']=='all') {
+			echo '<button type="button" id="useqa" onclick="togglequickadd(this)">'._("Use Quicksearch Entry").'</button>';
 			echo "<br/><span class=form>Add/Replace to all grades:</span><span class=formright><input type=text size=3 id=\"toallgrade\" onblur=\"this.value = doonblur(this.value);\"/>";
 			echo ' <input type=button value="Add" onClick="sendtoall(0,0);"/> <input type=button value="Multiply" onclick="sendtoall(0,1)"/> <input type=button value="Replace" onclick="sendtoall(0,2)"/></span><br class="form"/>';
 			echo "<span class=form>Add/Replace to all feedback:</span><span class=formright>";

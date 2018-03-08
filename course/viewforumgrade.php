@@ -135,6 +135,7 @@
 	if ($embedded) {
 		$flexwidth = true;
 		$nologo = true;
+		$showlink = false;
 	}
 	require("../header.php");
 	if (!$embedded) {

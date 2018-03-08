@@ -993,7 +993,7 @@
 				} else {
 					echo '<span id="fb-'.$i.'-wrap">';
 				}
-				echo '<br/>Feedback:<br/>';
+				echo '<br/>'._('Feedback').':<br/>';
 				if ($sessiondata['useed']==0) {
 					echo '<textarea id="fb-'.$i.'" name="fb-'.$i.'" class="fbbox" cols=60 rows=2>'.Sanitize::encodeStringForDisplay($feedback["Q$i"]).'</textarea>';
 				} else {
@@ -1114,7 +1114,7 @@
 				echo '</div>';
 			} else { //is student
 				if (!empty($feedback["Q$i"])) {
-					echo '<br/>Feedback:';
+					echo '<br/>'._('Feedback').': ';
 					echo '<div class="fbbox">'.Sanitize::outgoingHtml($feedback["Q$i"]).'</div>';
 				}
 			}
@@ -1123,7 +1123,7 @@
 		}
 		echo "<p></p><div class=review>Total: $total/$totalpossible</div>\n";
 		if ($canedit && !isset($_GET['lastver']) && !isset($_GET['reviewver'])) {
-			echo "<p>Feedback to student:<br/>";
+			echo "<p>General feedback:<br/>";
 			if ($sessiondata['useed']==0) {
 				echo "<textarea cols=60 rows=4 id=\"feedback\" name=\"feedback\" class=\"fbbox\">";
 				if (!empty($feedback["Z"])) {
@@ -1158,7 +1158,7 @@
 			*/
 
 		} else if (trim($line['feedback'])!='') {
-			echo "<p>Instructor Feedback:<div class=\"fbbox\">";
+			echo "<p>"._('General Instructor Feedback').":<div class=\"fbbox\">";
 			if (!empty($feedback["Z"])) {
 				echo Sanitize::outgoingHtml($feedback["Z"]);
 			}
