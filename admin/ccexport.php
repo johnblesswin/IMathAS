@@ -807,12 +807,15 @@ if (isset($_GET['delete'])) {
 	echo 'course files, and forums will all transfer reasonably well, but be aware that any math exported will call back to this server for display.</p>';
 	echo '<p>Since LMSs cannot support the type of question types that this system ';
 	echo 'does, assessments are exported as LTI (learning tools interoperability) placements back to this system.  Not all LMSs ';
-	echo 'support this standard yet, so your assessments may not transfer.  If they do, you will need to set up the LTI tool on your LMS ';
+	echo 'support this standard yet, so your assessments may not transfer.</p>';
+	
+	/*echo 'If they do, you will need to set up the LTI tool on your LMS ';
 	echo 'to work with this system by supplying an LTI key and secret.  If this system and your LMS have domain credentials set up, you may not have to do ';
 	echo 'anything.  Otherwise, you can use the LTI secret you set in your course settings, along with the key LTIkey_###_0 (if you want students ';
 	echo 'to create an account on this system) or LTIkey_###_1 (if you want students to only be able to log in through the LMS - recommended), where ### is ';
 	echo 'replaced with your course key.  <b>Important:</b> The key form LTIkey_###_1 is necessary if you want grades from '.$installname.' to be ';
 	echo 'reported back to the LMS automatically.</p> ';
+	*/
 	if ($enablebasiclti==false) {
 		echo '<p class="noticetext">Note: Your system does not currently have LTI enabled.  Contact your system administrator</p>';
 	}
@@ -879,7 +882,7 @@ if (isset($_GET['delete'])) {
 				<ul>
 				<li>Go to Settings, then Apps, then View App Configurations</li>
 				<li>Locate for the <?php echo $installname;?> App. Use the gear icon dropdown to select Edit</li>
-				<li>For the consumer key, enter <b><?php echo 'LTIkey_'.$cid.'1'; ?></b></li>
+				<li>For the consumer key, enter <b><?php echo 'LTIkey_'.$cid.'_1'; ?></b></li>
 				<?php
 				if ($ltisecret=='') {
 					echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
@@ -912,7 +915,7 @@ if (isset($_GET['delete'])) {
 			          and do not need to continue.</li>
 			        <li>For one of the links with status listed as Broken, use the drop-down menu
 			          that shows when hovering over the link name and select Edit Credentials.</li>
-			        <li>For the Tool Provider Key, enter <b><?php echo 'LTIkey_'.$cid.'1'; ?></b></li>
+			        <li>For the Tool Provider Key, enter <b><?php echo 'LTIkey_'.$cid.'_1'; ?></b></li>
 				<?php
 				if ($ltisecret=='') {
 					echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
@@ -992,6 +995,16 @@ if (isset($_GET['delete'])) {
 		</li>
 		</ul>
 	</div>
+	
+	<p>Note:  When configuring a course-level configuration, use of a key in the form <code>LTIkey_###_1</code> is recommended. 
+	   With this type of key, students will not have or need a username for <?php echo $installname;?>, and they must
+	   access assignments via the LMS.  This is usually desired when doing integration, and is necessary to ensure
+	   grades are passed from <?php echo $installname;?> back to the LMS.</p>
+	<p>If, however, you are not interested in grade return, and simply want to provide single-signon from your LMS 
+	   into <?php echo $installname;?> while allowing direct login to <?php echo $installname;?>as well, then you can 
+	   use a key of the form <code>LTIkey_###_0</code> instead.  This will require students to have or create an
+	   account on <?php echo $installname;?>, which they'll have to log into once to establish the connection.</p>
+	   
 	<?php
 	//echo "<p><button type=\"submit\" name=\"type\" value=\"custom\">Create CC Export with LTI placements as custom fields (works in BlackBoard)</button></p>";
 	/*echo "<p><button type=\"submit\" name=\"type\" value=\"url\">Create CC Export with LTI placements in URLs (works in BlackBoard and Moodle)</button></p>";
