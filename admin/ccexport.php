@@ -882,21 +882,19 @@ if (isset($_GET['delete'])) {
 				<ul>
 				<li>Go to Settings, then Apps, then View App Configurations</li>
 				<li>Locate for the <?php echo $installname;?> App. Use the gear icon dropdown to select Edit</li>
-				<li>For the consumer key, enter <b><?php echo 'LTIkey_'.$cid.'_1'; ?></b></li>
+				<li>For the consumer key, enter: <code><?php echo 'LTIkey_'.$cid.'_1'; ?></code></li>
 				<?php
 				if ($ltisecret=='') {
 					echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
 					echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
 				} else {
-					echo '<li>For Shared Secret enter <b>'.$ltisecret.'</b></li>';
+					echo '<li>For Shared Secret enter: <code>'.$ltisecret.'</code></li>';
 				}
 				?>
 				<li>Click Submit</li>
 				</ul>
 			</li>
-		</ul>
-		<p><a href="https://www.youtube.com/watch?v=Xmum_WUnh2c" target="_blank">Setup video</a></p>
-	
+		</ul>	
 	</div>
 	<div id="lmsbb" style="display:none" class="lmsblock">
 		<h4>BlackBoard</h4>
@@ -915,13 +913,13 @@ if (isset($_GET['delete'])) {
 			          and do not need to continue.</li>
 			        <li>For one of the links with status listed as Broken, use the drop-down menu
 			          that shows when hovering over the link name and select Edit Credentials.</li>
-			        <li>For the Tool Provider Key, enter <b><?php echo 'LTIkey_'.$cid.'_1'; ?></b></li>
+			        <li>For the Tool Provider Key, enter: <code><?php echo 'LTIkey_'.$cid.'_1'; ?></code></li>
 				<?php
 				if ($ltisecret=='') {
 					echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
 					echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
 				} else {
-					echo '<li>For Tool Provider Secret enter <b>'.$ltisecret.'</b></li>';
+					echo '<li>For Tool Provider Secret enter: <code>'.$ltisecret.'</code></li>';
 				}
 				?>
 				<li>Check the box "Apply these credentials to all links"</li>
@@ -937,25 +935,85 @@ if (isset($_GET['delete'])) {
 				</ul>
 			</li>
 		</ul>
-		<p><a href="https://www.youtube.com/watch?v=krTOVGS7sTk" target="_blank">Setup video</a></p>
 	</div>
 	<div id="lmsmoodle" style="display:none" class="lmsblock">
 		<h4>Moodle</h4>
 		<p><button type="submit">Download CC Export</button></p>
-		<p>Import the cartridge into your LMS. If your school has a global key and secret setup, skip ahead.
-		   Otherwise, you'll likely need to configure the LTI connection by providing the key and secret, which
-		   can be found on the <a href="forms.php?action=modify&id=<?php echo $cid;?>&cid=<?php echo $cid;?>">Course Settings</a> page.
-		</p>
+		<p>To import the cartridge in Moodle:</p>
+		<ul>
+			<li>Under Course Administration, select Restore.</li>
+			<li>Choose the export file and select Restore.</li>
+			<li>Follow the prompts to import the content.</li>
+			<li>Turn on editing for your course.</li>
+			<li>For one of the assessment, use the Edit dropdown and select Edit Settings.</li>
+			<li>If the Launch URL does not display the warning <em>Tool configuration not found for this URL</em>, 
+			   then you must have an existing key and secret set up, and can skip ahead.  
+			   If you do see that warning, then follow these steps.
+			    	<ul>
+			    	<li>Click the + sign located directly after the External tool type pulldown</li>
+			    	<li>Give the tool a name, like <?php echo $installname;?></li>
+			        <li>For Tool base URL enter: <code><?php echo Sanitize::encodeStringForDisplay($_SERVER['HTTP_HOST']);?></code></li>
+			        <li>For Consumer Key, enter: <code><?php echo 'LTIkey_'.$cid.'_1'; ?></code></li>
+				<?php
+				if ($ltisecret=='') {
+					echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
+					echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+				} else {
+					echo '<li>For Shared secret enter: <code>'.$ltisecret.'</code></li>';
+				}
+				?>
+				<li>Under Privacy, it is recommended to set all options to Always, but it is fine to leave it as Delegate to teacher instead.</li>
+				<li>Save changes</li>
+				<li>The Launch URL should now indicate <em>Using tool configuration MyOpenMath</em>.  Click Save.</li>
+				</ul>
+			</li>
+		</ul>
 		<p>Be aware that in Moodle, LTI assessments may not show in the gradebook columns
 		   until a student started working on an assignment.</p>
 	</div>
 	<div id="lmsd2l" style="display:none" class="lmsblock">
 		<h4>D2L / Brightspace</h4>
 		<p><button type="submit">Download CC Export</button></p>
-		<p>Import the cartridge into your LMS. If your school has a global key and secret setup, skip ahead.
-		   Otherwise, you'll likely need to configure the LTI connection by providing the key and secret, which
-		   can be found on the <a href="forms.php?action=modify&id=<?php echo $cid;?>&cid=<?php echo $cid;?>">Course Settings</a> page.
-		</p>
+		<p>To import the cartridge in Brightspace:</p>
+		<ul>
+			<li>Go to Course Admin, and select Import/Export/Copy Components.</li>
+			<li>Select Import Components, and "from a File"</li>
+			<li>Choose the export file and click Import All Components.</li>
+			<li>If you have a global key and secret, you can skip ahead. 
+			    If you need to set up a course-level configuration, follow these steps.
+			    	<ul>
+			    	<li>Go to Course Admin, and click External Learning Tools</li>
+			    	<li>Click on Manage Tool Providers.  If you do not see this link, 
+			    	   then your LMS administrators have blocked your ability to self-configure the connection.  
+			    	   You will need to ask for them to set up a global tool provider.</li>
+			    	<li>Click New Tool Provider</li>
+			    	<li>For the Launch Point enter: <code><?php echo $GLOBALS['basesiteurl'].'/bltilaunch.php';?></code></li>
+			    	<?php
+				if ($ltisecret=='') {
+					echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
+					echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+				} else {
+					echo '<li>For Secret enter: <code>'.$ltisecret.'</code></li>';
+				}
+				?>
+			    	<li>Click the "Use custom tool information" box if needed</li>
+			        <li>For they Key, enter: <code><?php echo 'LTIkey_'.$cid.'_1'; ?></code></li>
+			        <li>For the name name, enter: <code><?php echo $installname;?></code></li>
+				<li>Click the "Allow users to use this tool provider" if that option is available.</li>
+				<li>Under Security Settings, make sure the following options are checked (it is OK to check other ones as well):
+					<ul>
+					<li>Send tool consumer information to tool provider</li>
+					<li>Send context information to tool provider</li>
+					<li>Send course information to tool provider</li>
+					<li>Send LTI user ID and LTI role to tool provider</li>
+					<li>Send user name to tool provider</li>
+					<li>Send user email to tool provider (optional, but recommended)</li>
+					</ul>
+				</li>
+				<li>Save</li>
+				</ul>
+			</li>
+		</ul>
 		<p>Be aware that in D2L, LTI assessments may not show in the gradebook columns
 		   until a student started working on an assignment.</p>
 	</div>
