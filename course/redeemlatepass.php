@@ -130,7 +130,11 @@
 			$r = $stm->fetch(PDO::FETCH_NUM);
 			list($useexception, $canundolatepass, $canuselatepass) = $exceptionfuncs->getCanUseAssessException($r, array('startdate'=>$startdate, 'enddate'=>$enddate, 'allowlate'=>$allowlate, 'id'=>$aid));
 			if ($useexception) {
-				$usedlatepasses = min(max(0,round(($r[1] - $enddate)/($latepasshrs*3600))), $r[2]);
+				if (!empty($r[3])) { //is_lti - use count in exception
+					$usedlatepasses = $r[2];
+				} else {
+					$usedlatepasses = min(max(0,round(($r[1] - $enddate)/($latepasshrs*3600))), $r[2]);
+				}
 				$thised = $r[1];
 			} else {
 				$usedlatepasses = 0;
@@ -209,7 +213,11 @@
 			$r = $stm->fetch(PDO::FETCH_NUM);
 			list($useexception, $canundolatepass, $canuselatepass) = $exceptionfuncs->getCanUseAssessException($r, array('startdate'=>$startdate, 'enddate'=>$enddate, 'allowlate'=>$allowlate, 'id'=>$aid));
 			if ($useexception) {
-				$usedlatepasses = min(max(0,round(($r[1] - $enddate)/($latepasshrs*3600))), $r[2]);
+				if (!empty($r[3])) { //is_lti - use count in exception
+					$usedlatepasses = $r[2];
+				} else {
+					$usedlatepasses = min(max(0,round(($r[1] - $enddate)/($latepasshrs*3600))), $r[2]);
+				}
 				$thised = $r[1];
 			} else {
 				$usedlatepasses = 0;

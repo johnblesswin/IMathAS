@@ -114,7 +114,12 @@ class ExceptionFuncs {
 				//this logic counts "latepasses used" based on date of exception past original enddate
 				//regardless of whether exception is manual or latepass
 				//prevents using latepasses on top of a manual extension
-				$latepasscnt = max(0,round(($exception[1] - $adata['enddate'])/($this->latepasshrs*3600)));
+				if (!empty($exception[3])) {
+					//with LTI one, base latepasscnt only on the value in the exception
+					$latepasscnt = $exception[2];
+				} else {
+					$latepasscnt = max(0,round(($exception[1] - $adata['enddate'])/($this->latepasshrs*3600)));
+				}
 				//use exception due date for determining canuselatepass
 				$adata['enddate'] = $exception[1];
 			} else {
