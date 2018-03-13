@@ -809,13 +809,6 @@ if (isset($_GET['delete'])) {
 	echo 'does, assessments are exported as LTI (learning tools interoperability) placements back to this system.  Not all LMSs ';
 	echo 'support this standard yet, so your assessments may not transfer.</p>';
 	
-	/*echo 'If they do, you will need to set up the LTI tool on your LMS ';
-	echo 'to work with this system by supplying an LTI key and secret.  If this system and your LMS have domain credentials set up, you may not have to do ';
-	echo 'anything.  Otherwise, you can use the LTI secret you set in your course settings, along with the key LTIkey_###_0 (if you want students ';
-	echo 'to create an account on this system) or LTIkey_###_1 (if you want students to only be able to log in through the LMS - recommended), where ### is ';
-	echo 'replaced with your course key.  <b>Important:</b> The key form LTIkey_###_1 is necessary if you want grades from '.$installname.' to be ';
-	echo 'reported back to the LMS automatically.</p> ';
-	*/
 	if ($enablebasiclti==false) {
 		echo '<p class="noticetext">Note: Your system does not currently have LTI enabled.  Contact your system administrator</p>';
 	}
@@ -871,198 +864,103 @@ if (isset($_GET['delete'])) {
 			<span class="small">Blocks will only include the start date if they are set to hide contents from students when not available.</span></li>
 		</ul>
 		<p><button type="submit">Download CC Export</button></p>
-		<p>To import the cartridge in Canvas:</p>
+		<p><a href="../help.php?section=lticanvas" target="_blank">Canvas Setup Instructions</a></p>
+		<p>If you are planning on setting up a course-level configuration, you will need this information:</p>
 		<ul>
-			<li>Go to Settings, then Import Course Content</li>
-			<li>For Content Type, select Canvas Course Export Package.  
-				Select the export file from your computer,
-				and select All Content.  Click Import.</li>
-			<li>If are setting up a course-level App Config (based on your selection above) follow these steps.
-			    If you have a course-level configuration, skip ahead.
-				<ul>
-				<li>Go to Settings, then Apps, then View App Configurations</li>
-				<li>Locate for the <?php echo $installname;?> App. Use the gear icon dropdown to select Edit</li>
-				<li>For the consumer key, enter: <code><?php echo 'LTIkey_'.$cid.'_1'; ?></code></li>
-				<?php
-				if ($ltisecret=='') {
-					echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
-					echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
-				} else {
-					echo '<li>For Shared Secret enter: <code>'.$ltisecret.'</code></li>';
-				}
-				?>
-				<li>Click Submit</li>
-				</ul>
-			</li>
-		</ul>	
+		<li>Key: <?php echo 'LTIkey_'.$cid.'_1'; ?></li>
+		<li>Secret: 
+		<?php
+		if ($ltisecret=='') {
+			echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
+			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+		} else {
+			echo Sanitize::encodeStringForDisplay($ltisecret);
+		}
+		?>
+		</li>
+		</ul>
 	</div>
 	<div id="lmsbb" style="display:none" class="lmsblock">
 		<h4>BlackBoard</h4>
 		<p><button type="submit">Download CC Export</button></p>
-		<p>To import the cartridge in BlackBoard:</p>
+		<p><a href="../help.php?section=ltibb" target="_blank">BlackBoard Setup Instructions</a></p>
+		<p>If you are planning on setting up a course-level configuration, you will need this information:</p>
 		<ul>
-			<li>Go to Packages and Utilities, then Import Package</li>
-			<li>Click Import Package</li>
-			<li>Select the export file from your computer, click Select All
-			    to select all course materials, then click Submit.</li>
-			<li>If your school has a global key and secret setup, skip ahead.  
-			    If you need to set up a course-level configuration, follow these steps.
-			    	<ul>
-			    	<li>To to Packages and Utilities, then Manage LTI Links</li>
-			    	<li>If the links are listed as Working, then you have an existing configuration,
-			          and do not need to continue.</li>
-			        <li>For one of the links with status listed as Broken, use the drop-down menu
-			          that shows when hovering over the link name and select Edit Credentials.</li>
-			        <li>For the Tool Provider Key, enter: <code><?php echo 'LTIkey_'.$cid.'_1'; ?></code></li>
-				<?php
-				if ($ltisecret=='') {
-					echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
-					echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
-				} else {
-					echo '<li>For Tool Provider Secret enter: <code>'.$ltisecret.'</code></li>';
-				}
-				?>
-				<li>Check the box "Apply these credentials to all links"</li>
-				<li>Click Submit</li>
-				</ul>
-			</li>
-			<li>To enable grade return, Blackboard requires some additional steps:
-				<ul>
-				<li>Return to the main course page in Blackboard.</li>
-				<li>For each assessment link that was imported, use the drop-down menu and select Edit</li>
-				<li>Set the Enable Evaluation option to Yes, specify the points possible (it does not 
-				    need to match the points possible in <?php echo $installname;?>), and set a Due Date if desired.</li>
-				</ul>
-			</li>
+		<li>Key: <?php echo 'LTIkey_'.$cid.'_1'; ?></li>
+		<li>Secret: 
+		<?php
+		if ($ltisecret=='') {
+			echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
+			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+		} else {
+			echo Sanitize::encodeStringForDisplay($ltisecret);
+		}
+		?>
+		</li>
 		</ul>
 	</div>
 	<div id="lmsmoodle" style="display:none" class="lmsblock">
 		<h4>Moodle</h4>
 		<p><button type="submit">Download CC Export</button></p>
-		<p>To import the cartridge in Moodle:</p>
+		<p><a href="../help.php?section=ltimoodle" target="_blank">Moodle Setup Instructions</a></p>
+		<p>If you are planning on setting up a course-level configuration, you will need this information:</p>
 		<ul>
-			<li>Under Course Administration, select Restore.</li>
-			<li>Choose the export file and select Restore.</li>
-			<li>Follow the prompts to import the content.</li>
-			<li>Turn on editing for your course.</li>
-			<li>For one of the assessment, use the Edit dropdown and select Edit Settings.</li>
-			<li>If the Launch URL does not display the warning <em>Tool configuration not found for this URL</em>, 
-			   then you must have an existing key and secret set up, and can skip ahead.  
-			   If you do see that warning, then follow these steps.
-			    	<ul>
-			    	<li>Click the + sign located directly after the External tool type pulldown</li>
-			    	<li>Give the tool a name, like <?php echo $installname;?></li>
-			        <li>For Tool base URL enter: <code><?php echo Sanitize::encodeStringForDisplay($_SERVER['HTTP_HOST']);?></code></li>
-			        <li>For Consumer Key, enter: <code><?php echo 'LTIkey_'.$cid.'_1'; ?></code></li>
-				<?php
-				if ($ltisecret=='') {
-					echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
-					echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
-				} else {
-					echo '<li>For Shared secret enter: <code>'.$ltisecret.'</code></li>';
-				}
-				?>
-				<li>Under Privacy, it is recommended to set all options to Always, but it is fine to leave it as Delegate to teacher instead.</li>
-				<li>Save changes</li>
-				<li>The Launch URL should now indicate <em>Using tool configuration MyOpenMath</em>.  Click Save.</li>
-				</ul>
-			</li>
+		<li>Key: <?php echo 'LTIkey_'.$cid.'_1'; ?></li>
+		<li>Secret: 
+		<?php
+		if ($ltisecret=='') {
+			echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
+			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+		} else {
+			echo Sanitize::encodeStringForDisplay($ltisecret);
+		}
+		?>
+		</li>
+		<li>Tool Base URL: <?php echo $GLOBALS['basesiteurl'].'/bltilaunch.php';?> </li>
 		</ul>
-		<p>Be aware that in Moodle, LTI assessments may not show in the gradebook columns
-		   until a student started working on an assignment.</p>
 	</div>
 	<div id="lmsd2l" style="display:none" class="lmsblock">
 		<h4>D2L / Brightspace</h4>
 		<p><button type="submit">Download CC Export</button></p>
-		<p>To import the cartridge in Brightspace:</p>
+		<p><a href="../help.php?section=ltid2l" target="_blank">Brightspace Setup Instructions</a></p>
+		<p>If you are planning on setting up a course-level configuration, you will need this information:</p>
 		<ul>
-			<li>Go to Course Admin, and select Import/Export/Copy Components.</li>
-			<li>Select Import Components, and "from a File"</li>
-			<li>Choose the export file and click Import All Components.</li>
-			<li>If you have a global key and secret, you can skip ahead. 
-			    If you need to set up a course-level configuration, follow these steps.
-			    	<ul>
-			    	<li>Go to Course Admin, and click External Learning Tools</li>
-			    	<li>Click on Manage Tool Providers.  If you do not see this link, 
-			    	   then your LMS administrators have blocked your ability to self-configure the connection.  
-			    	   You will need to ask for them to set up a global tool provider.</li>
-			    	<li>Click New Tool Provider</li>
-			    	<li>For the Launch Point enter: <code><?php echo $GLOBALS['basesiteurl'].'/bltilaunch.php';?></code></li>
-			    	<?php
-				if ($ltisecret=='') {
-					echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
-					echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
-				} else {
-					echo '<li>For Secret enter: <code>'.$ltisecret.'</code></li>';
-				}
-				?>
-			    	<li>Click the "Use custom tool information" box if needed</li>
-			        <li>For they Key, enter: <code><?php echo 'LTIkey_'.$cid.'_1'; ?></code></li>
-			        <li>For the name name, enter: <code><?php echo $installname;?></code></li>
-				<li>Click the "Allow users to use this tool provider" if that option is available.</li>
-				<li>Under Security Settings, make sure the following options are checked (it is OK to check other ones as well):
-					<ul>
-					<li>Send tool consumer information to tool provider</li>
-					<li>Send context information to tool provider</li>
-					<li>Send course information to tool provider</li>
-					<li>Send LTI user ID and LTI role to tool provider</li>
-					<li>Send user name to tool provider</li>
-					<li>Send user email to tool provider (optional, but recommended)</li>
-					</ul>
-				</li>
-				<li>Save</li>
-				</ul>
-			</li>
+		<li>Key: <?php echo 'LTIkey_'.$cid.'_1'; ?></li>
+		<li>Secret: 
+		<?php
+		if ($ltisecret=='') {
+			echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
+			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+		} else {
+			echo Sanitize::encodeStringForDisplay($ltisecret);
+		}
+		?>
+		</li>
+		<li>Launch Point: <?php echo $GLOBALS['basesiteurl'].'/bltilaunch.php';?> </li>
 		</ul>
-		<p>Be aware that in D2L, LTI assessments may not show in the gradebook columns
-		   until a student started working on an assignment.</p>
 	</div>
 	<div id="lmsother" style="display:none" class="lmsblock">
 		<h4>Other</h4>
 		<p><button type="submit">Download CC Export</button></p>
-		<p>Import the cartridge into your LMS. If your school has a global key and secret setup, skip ahead.
-		   Otherwise, you'll likely need to configure the LTI connection by providing the key and secret, which
-		   can be found on the <a href="forms.php?action=modify&id=<?php echo $cid;?>&cid=<?php echo $cid;?>">Course Settings</a> page.
-		</p>
+		<p><a href="../help.php?section=ltiother" target="_blank">LMS Setup Instructions</a></p>
+		<p>If you are planning on setting up a course-level configuration, you may need this information:</p>
+		<ul>
+		<li>Key: <?php echo 'LTIkey_'.$cid.'_1'; ?></li>
+		<li>Secret: 
+		<?php
+		if ($ltisecret=='') {
+			echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
+			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+		} else {
+			echo Sanitize::encodeStringForDisplay($ltisecret);
+		}
+		?>
+		</li>
+		<li>Launch URL: <?php echo $GLOBALS['basesiteurl'].'/bltilaunch.php';?> </li>
+		</ul>
 		
 	</div>
 	
-	<div>
-		<h4>Establishing the Connection</h4>
-		<ul>
-		<li>Click one of the assessment links in your course.</li>
-		<li>If this is your first time using this key and secret, <?php echo $installname;?> will
-		    ask you, the teacher, to sign into your <?php echo $installname;?> account.  This is necessary to
-		    establish a connection between your LMS account and your <?php echo $installname;?> account.  
-		    You will not need to do this step again, and students will not be asked to sign in 
-		    and will not need a <?php echo $installname;?> account.</li>
-		<li>Follow the prompts to associate the LMS course with your existing <?php echo $installname;?> course 
-		    or create a copy.</li>
-		<li>Once complete, all the LTI links in your LMS should work.</li>
-		<li>Be aware:
-			<ul>
-			<li>Links, files, forums, and and text items were imported into your LMS.  Changing
-			    them in <?php echo $installname;?> will not change them in your LMS</li>
-			<li>If you change assessment settings or the questions in an assessment in <?php echo $installname;?>,
-			    those changes will show up when the assessment is launched from the LMS</li>
-			<li>Any new items added in <?php echo $installname;?>, including new assessments, will not
-			    automatically show up in the LMS; you would need to repeat the export/import process.</li>
-			<li>If configured, grades will be sent from <?php echo $installname;?> to the LMS immediately 
-			    every time the student completes a question, but the LMS may delay updating the grade.</li>
-			</ul>
-		</li>
-		</ul>
-	</div>
-	
-	<p>Note:  When configuring a course-level configuration, use of a key in the form <code>LTIkey_###_1</code> is recommended. 
-	   With this type of key, students will not have or need a username for <?php echo $installname;?>, and they must
-	   access assignments via the LMS.  This is usually desired when doing integration, and is necessary to ensure
-	   grades are passed from <?php echo $installname;?> back to the LMS.</p>
-	<p>If, however, you are not interested in grade return, and simply want to provide single-signon from your LMS 
-	   into <?php echo $installname;?> while allowing direct login to <?php echo $installname;?>as well, then you can 
-	   use a key of the form <code>LTIkey_###_0</code> instead.  This will require students to have or create an
-	   account on <?php echo $installname;?>, which they'll have to log into once to establish the connection.</p>
-	   
 	<?php
 	//echo "<p><button type=\"submit\" name=\"type\" value=\"custom\">Create CC Export with LTI placements as custom fields (works in BlackBoard)</button></p>";
 	/*echo "<p><button type=\"submit\" name=\"type\" value=\"url\">Create CC Export with LTI placements in URLs (works in BlackBoard and Moodle)</button></p>";
