@@ -871,8 +871,8 @@ if (isset($_GET['delete'])) {
 		<li>Secret: 
 		<?php
 		if ($ltisecret=='') {
-			echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
-			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+			echo 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
+			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
 		} else {
 			echo Sanitize::encodeStringForDisplay($ltisecret);
 		}
@@ -890,8 +890,8 @@ if (isset($_GET['delete'])) {
 		<li>Secret: 
 		<?php
 		if ($ltisecret=='') {
-			echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
-			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+			echo 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
+			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
 		} else {
 			echo Sanitize::encodeStringForDisplay($ltisecret);
 		}
@@ -909,8 +909,8 @@ if (isset($_GET['delete'])) {
 		<li>Secret: 
 		<?php
 		if ($ltisecret=='') {
-			echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
-			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+			echo 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
+			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
 		} else {
 			echo Sanitize::encodeStringForDisplay($ltisecret);
 		}
@@ -929,8 +929,8 @@ if (isset($_GET['delete'])) {
 		<li>Secret: 
 		<?php
 		if ($ltisecret=='') {
-			echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
-			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+			echo 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
+			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
 		} else {
 			echo Sanitize::encodeStringForDisplay($ltisecret);
 		}
@@ -949,8 +949,8 @@ if (isset($_GET['delete'])) {
 		<li>Secret: 
 		<?php
 		if ($ltisecret=='') {
-			echo '<li>You have not yet set up an LTI secret for your course.  To do so, visit the ';
-			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.</li>';
+			echo 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
+			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
 		} else {
 			echo Sanitize::encodeStringForDisplay($ltisecret);
 		}
