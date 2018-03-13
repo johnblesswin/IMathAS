@@ -784,6 +784,27 @@ if (isset($_GET['delete'])) {
 	}
 	echo '<a href="jsonexport.php?cid='. $cid.'" name="button">Export OEA JSON</a>';
 	echo '</div>';
+	
+	$stm = $DBH->prepare("SELECT id FROM imas_users WHERE (rights=11 OR rights=76 OR rights=77) AND groupid=?");
+	$stm->execute(array($groupid));
+	$hasGroupLTI = ($stm->fetchColumn() !== false);
+	if ($hasGroupLTI) {
+		$groupLTInote = '<p>It looks like your school may already have a school-wide LTI key and secret established - check with your LMS admin. ';
+		$groupLTInote .= 'If so, you will not need to set up a course-level configuration. ';
+		$groupLTInote .= 'If you do need to set up a course-level configuration, you will need this information:</p>';
+	} else {
+		$groupLTInote = '<p>Your school does not appear to have a school-wide LTI key and secret established. ';
+		$groupLTInote .= 'To set up a course-level configuration, you will need this information:</p>';
+	}
+	$keyInfo = '<li>Key: LTIkey_'.$cid.'_1</li>';
+	$keyInfo .= '<li>Secret: ';
+	if ($ltisecret=='') {
+		$keyInfo .= 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
+		$keyInfo .= '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
+	} else {
+		$keyInfo .= Sanitize::encodeStringForDisplay($ltisecret);
+	}
+	$keyInfo .= '</li>';
 
 	$stm = $DBH->prepare("SELECT itemorder,dates_by_lti,ltisecret FROM imas_courses WHERE id=:id");
 	$stm->execute(array(':id'=>$cid));
@@ -865,57 +886,27 @@ if (isset($_GET['delete'])) {
 		</ul>
 		<p><button type="submit">Download CC Export</button></p>
 		<p><a href="../help.php?section=lticanvas" target="_blank">Canvas Setup Instructions</a></p>
-		<p>If you are planning on setting up a course-level configuration, you will need this information:</p>
+		<?php echo $groupLTInote; ?>
 		<ul>
-		<li>Key: <?php echo 'LTIkey_'.$cid.'_1'; ?></li>
-		<li>Secret: 
-		<?php
-		if ($ltisecret=='') {
-			echo 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
-			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
-		} else {
-			echo Sanitize::encodeStringForDisplay($ltisecret);
-		}
-		?>
-		</li>
+		<?php echo $keyInfo; ?>
 		</ul>
 	</div>
 	<div id="lmsbb" style="display:none" class="lmsblock">
 		<h4>BlackBoard</h4>
 		<p><button type="submit">Download CC Export</button></p>
 		<p><a href="../help.php?section=ltibb" target="_blank">BlackBoard Setup Instructions</a></p>
-		<p>If you are planning on setting up a course-level configuration, you will need this information:</p>
+		<?php echo $groupLTInote; ?>
 		<ul>
-		<li>Key: <?php echo 'LTIkey_'.$cid.'_1'; ?></li>
-		<li>Secret: 
-		<?php
-		if ($ltisecret=='') {
-			echo 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
-			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
-		} else {
-			echo Sanitize::encodeStringForDisplay($ltisecret);
-		}
-		?>
-		</li>
+		<?php echo $keyInfo; ?>
 		</ul>
 	</div>
 	<div id="lmsmoodle" style="display:none" class="lmsblock">
 		<h4>Moodle</h4>
 		<p><button type="submit">Download CC Export</button></p>
 		<p><a href="../help.php?section=ltimoodle" target="_blank">Moodle Setup Instructions</a></p>
-		<p>If you are planning on setting up a course-level configuration, you will need this information:</p>
+		<?php echo $groupLTInote; ?>
 		<ul>
-		<li>Key: <?php echo 'LTIkey_'.$cid.'_1'; ?></li>
-		<li>Secret: 
-		<?php
-		if ($ltisecret=='') {
-			echo 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
-			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
-		} else {
-			echo Sanitize::encodeStringForDisplay($ltisecret);
-		}
-		?>
-		</li>
+		<?php echo $keyInfo; ?>
 		<li>Tool Base URL: <?php echo $GLOBALS['basesiteurl'].'/bltilaunch.php';?> </li>
 		</ul>
 	</div>
@@ -923,19 +914,9 @@ if (isset($_GET['delete'])) {
 		<h4>D2L / Brightspace</h4>
 		<p><button type="submit">Download CC Export</button></p>
 		<p><a href="../help.php?section=ltid2l" target="_blank">Brightspace Setup Instructions</a></p>
-		<p>If you are planning on setting up a course-level configuration, you will need this information:</p>
+		<?php echo $groupLTInote; ?>
 		<ul>
-		<li>Key: <?php echo 'LTIkey_'.$cid.'_1'; ?></li>
-		<li>Secret: 
-		<?php
-		if ($ltisecret=='') {
-			echo 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
-			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
-		} else {
-			echo Sanitize::encodeStringForDisplay($ltisecret);
-		}
-		?>
-		</li>
+		<?php echo $keyInfo; ?>
 		<li>Launch Point: <?php echo $GLOBALS['basesiteurl'].'/bltilaunch.php';?> </li>
 		</ul>
 	</div>
@@ -943,19 +924,9 @@ if (isset($_GET['delete'])) {
 		<h4>Other</h4>
 		<p><button type="submit">Download CC Export</button></p>
 		<p><a href="../help.php?section=ltiother" target="_blank">LMS Setup Instructions</a></p>
-		<p>If you are planning on setting up a course-level configuration, you may need this information:</p>
+		<?php echo $groupLTInote; ?>
 		<ul>
-		<li>Key: <?php echo 'LTIkey_'.$cid.'_1'; ?></li>
-		<li>Secret: 
-		<?php
-		if ($ltisecret=='') {
-			echo 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
-			echo '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
-		} else {
-			echo Sanitize::encodeStringForDisplay($ltisecret);
-		}
-		?>
-		</li>
+		<?php echo $keyInfo; ?>
 		<li>Launch URL: <?php echo $GLOBALS['basesiteurl'].'/bltilaunch.php';?> </li>
 		</ul>
 		
