@@ -876,7 +876,8 @@ if (isset($_GET['delete'])) {
 		</select>
 	</p>
 	<div id="lmscanvas" class="lmsblock">
-		<h4>Canvas</h4>
+		<fieldset>
+		<legend>Canvas Export Options</legend>
 		<ul class="nomark canvasoptlist">
 		<li><input type=checkbox name=includeappconfig value=1 checked /> Include App Config? Do not include it if you have site-wide credentials,
 			or if you are doing a second import into a course that already has a configuration.</li>
@@ -885,7 +886,8 @@ if (isset($_GET['delete'])) {
 		<li><input type=checkbox name=includestartdates value=1 /> Include <?php echo $installname;?> start dates for assessments and blocks<br/>
 			<span class="small">Blocks will only include the start date if they are set to hide contents from students when not available.</span></li>
 		</ul>
-		<p><button type="submit">Download CC Export</button></p>
+		</fieldset>
+		<p><button type="submit">Download Export Cartridge</button></p>
 		<p><a href="../help.php?section=lticanvas" target="_blank">Canvas Setup Instructions</a></p>
 		<?php echo $groupLTInote; ?>
 		<ul>
@@ -893,8 +895,7 @@ if (isset($_GET['delete'])) {
 		</ul>
 	</div>
 	<div id="lmsbb" style="display:none" class="lmsblock">
-		<h4>BlackBoard</h4>
-		<p><button type="submit">Download CC Export</button></p>
+		<p><button type="submit">Download Export Cartridge</button></p>
 		<p><a href="../help.php?section=ltibb" target="_blank">BlackBoard Setup Instructions</a></p>
 		<?php echo $groupLTInote; ?>
 		<ul>
@@ -902,8 +903,7 @@ if (isset($_GET['delete'])) {
 		</ul>
 	</div>
 	<div id="lmsmoodle" style="display:none" class="lmsblock">
-		<h4>Moodle</h4>
-		<p><button type="submit">Download CC Export</button></p>
+		<p><button type="submit">Download Export Cartridge</button></p>
 		<p><a href="../help.php?section=ltimoodle" target="_blank">Moodle Setup Instructions</a></p>
 		<?php echo $groupLTInote; ?>
 		<ul>
@@ -912,8 +912,7 @@ if (isset($_GET['delete'])) {
 		</ul>
 	</div>
 	<div id="lmsd2l" style="display:none" class="lmsblock">
-		<h4>D2L / Brightspace</h4>
-		<p><button type="submit">Download CC Export</button></p>
+		<p><button type="submit">Download Export Cartridge</button></p>
 		<p><a href="../help.php?section=ltid2l" target="_blank">Brightspace Setup Instructions</a></p>
 		<?php echo $groupLTInote; ?>
 		<ul>
@@ -922,8 +921,7 @@ if (isset($_GET['delete'])) {
 		</ul>
 	</div>
 	<div id="lmsother" style="display:none" class="lmsblock">
-		<h4>Other</h4>
-		<p><button type="submit">Download CC Export</button></p>
+		<p><button type="submit">Download Export Cartridge</button></p>
 		<p><a href="../help.php?section=ltiother" target="_blank">LMS Setup Instructions</a></p>
 		<?php echo $groupLTInote; ?>
 		<ul>
