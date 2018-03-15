@@ -758,7 +758,45 @@ if (isset($_GET['delete'])) {
 	readfile($path.'/'.$archive_file_name);
 	unlink($path.'/'.$archive_file_name);
 } else {
+	$stm = $DBH->prepare("SELECT itemorder,dates_by_lti,ltisecret FROM imas_courses WHERE id=:id");
+	$stm->execute(array(':id'=>$cid));
+	list($items, $datesbylti, $ltisecret) = $stm->fetch(PDO::FETCH_NUM);
+	$items = unserialize($items);
+	
+	$ids = array();
+	$types = array();
+	$names = array();
+	$sums = array();
+	$parents = array();
+	$agbcats = array();
+	$prespace = array();
+	$itemshowdata = loadItemShowData($items,false,true,false,false,false,true);
+	getsubinfo($items,'0','',false,'|- ');
+	
+	$stm = $DBH->prepare("SELECT id FROM imas_users WHERE (rights=11 OR rights=76 OR rights=77) AND groupid=?");
+	$stm->execute(array($groupid));
+	$hasGroupLTI = ($stm->fetchColumn() !== false);
+	if ($hasGroupLTI) {
+		$groupLTInote = '<p>It looks like your school may already have a school-wide LTI key and secret established - check with your LMS admin. ';
+		$groupLTInote .= 'If so, you will not need to set up a course-level configuration. ';
+		$groupLTInote .= 'If you do need to set up a course-level configuration, you will need this information:</p>';
+	} else {
+		$groupLTInote = '<p>Your school does not appear to have a school-wide LTI key and secret established. ';
+		$groupLTInote .= 'To set up a course-level configuration, you will need this information:</p>';
+	}
+	$keyInfo = '<li>Key: LTIkey_'.$cid.'_1</li>';
+	$keyInfo .= '<li>Secret: ';
+	if ($ltisecret=='') {
+		$keyInfo .= 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
+		$keyInfo .= '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
+	} else {
+		$keyInfo .= Sanitize::encodeStringForDisplay($ltisecret);
+	}
+	$keyInfo .= '</li>';
 
+	
+	
+	
 	$pagetitle = "CC Export";
 	
 	$placeinhead = '<script type="text/javascript">
@@ -784,43 +822,6 @@ if (isset($_GET['delete'])) {
 	}
 	echo '<a href="jsonexport.php?cid='. $cid.'" name="button">Export OEA JSON</a>';
 	echo '</div>';
-	
-	$stm = $DBH->prepare("SELECT id FROM imas_users WHERE (rights=11 OR rights=76 OR rights=77) AND groupid=?");
-	$stm->execute(array($groupid));
-	$hasGroupLTI = ($stm->fetchColumn() !== false);
-	if ($hasGroupLTI) {
-		$groupLTInote = '<p>It looks like your school may already have a school-wide LTI key and secret established - check with your LMS admin. ';
-		$groupLTInote .= 'If so, you will not need to set up a course-level configuration. ';
-		$groupLTInote .= 'If you do need to set up a course-level configuration, you will need this information:</p>';
-	} else {
-		$groupLTInote = '<p>Your school does not appear to have a school-wide LTI key and secret established. ';
-		$groupLTInote .= 'To set up a course-level configuration, you will need this information:</p>';
-	}
-	$keyInfo = '<li>Key: LTIkey_'.$cid.'_1</li>';
-	$keyInfo .= '<li>Secret: ';
-	if ($ltisecret=='') {
-		$keyInfo .= 'You have not yet set up an LTI secret for your course.  To do so, visit the ';
-		$keyInfo .= '<a href="forms.php?action=modify&id='.$cid.'&cid='.$cid.'">Course Settings</a> page.';
-	} else {
-		$keyInfo .= Sanitize::encodeStringForDisplay($ltisecret);
-	}
-	$keyInfo .= '</li>';
-
-	$stm = $DBH->prepare("SELECT itemorder,dates_by_lti,ltisecret FROM imas_courses WHERE id=:id");
-	$stm->execute(array(':id'=>$cid));
-	list($items, $datesbylti, $ltisecret) = $stm->fetch(PDO::FETCH_NUM);
-	$items = unserialize($items);
-
-	$ids = array();
-	$types = array();
-	$names = array();
-	$sums = array();
-	$parents = array();
-	$agbcats = array();
-	$prespace = array();
-	$itemshowdata = loadItemShowData($items,false,true,false,false,false,true);
-	getsubinfo($items,'0','',false,'|- ');
-
 
 	echo '<h2>Common Cartridge Export</h2>';
 	echo '<p>This feature will allow you to export a v1.1 compliant IMS Common Cartridge export of your course, which can ';
