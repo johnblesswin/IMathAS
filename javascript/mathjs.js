@@ -84,6 +84,7 @@ function safepow(base,power) {
 		return Math.pow(base,power);
 	}
 }
+//varlist should be pipe-separated list of variables, presorted from longest to shortest
 function mathjs(st,varlist) {
   //translate a math formula to js function notation
   // a^b --> pow(a,b)
@@ -103,7 +104,7 @@ function mathjs(st,varlist) {
   //hide functions for now
   st = st.replace(/(sinh|cosh|tanh|sech|csch|coth|sqrt|ln|log|sin|cos|tan|sec|csc|cot|abs|root)/g, functoindex);
   //escape variables so regex's won't interfere
-  if (varlist != null) {
+  if (varlist != null && varlist != '') {
   	  var vararr = varlist.split("|");
   	  //search for alt capitalization to escape alt caps correctly
   	  var foundaltcap = [];
@@ -149,7 +150,7 @@ function mathjs(st,varlist) {
   st = st.replace(/\s/g,"");
   
   //restore variables
-  if (varlist != null) {
+  if (varlist != null && varlist != '') {
     st = st.replace(/@v(\d+)@/g, function(match,contents) {
   	  return vararr[contents];
        });
@@ -166,7 +167,40 @@ function mathjs(st,varlist) {
 
   //convert powers and factorials
   var i,j,k, ch, nested;
-  while ((i=st.indexOf("^"))!=-1) {
+    while ((i=st.indexOf("!"))!=-1) {
+    //find left argument
+    if (i==0) return "Error: missing argument";
+    j = i-1;
+    ch = st.charAt(j);
+    if (ch>="0" && ch<="9") {// look for (decimal) number
+      j--;
+      while (j>=0 && (ch=st.charAt(j))>="0" && ch<="9") j--;
+      if (ch==".") {
+        j--;
+        while (j>=0 && (ch=st.charAt(j))>="0" && ch<="9") j--;
+      }
+    } else if (ch==")") {// look for matching opening bracket and function name
+      nested = 1;
+      j--;
+      while (j>=0 && nested>0) {
+        ch = st.charAt(j);
+        if (ch=="(") nested--;
+        else if (ch==")") nested++;
+        j--;
+      }
+      while (j>=0 && ((ch=st.charAt(j))>="a" && ch<="z" || ch>="A" && ch<="Z"))
+        j--;
+    } else if (ch>="a" && ch<="z" || ch>="A" && ch<="Z") {// look for variable
+      j--;
+      while (j>=0 && ((ch=st.charAt(j))>="a" && ch<="z" || ch>="A" && ch<="Z"))
+        j--;
+    } else {
+      return "Error: incorrect syntax in "+st+" at position "+j;
+    }
+    st = st.slice(0,j+1)+"factorial("+st.slice(j+1,i)+")"+st.slice(i+1);
+  }
+  console.log(st);
+  while ((i=st.lastIndexOf("^"))!=-1) {
 
     //find left argument
     if (i==0) return "Error: missing argument";
@@ -223,7 +257,7 @@ function mathjs(st,varlist) {
       k++;
       while (k<st.length && ((ch=st.charAt(k))>="a" && ch<="z" ||
                ch>="A" && ch<="Z")) k++;
-      if (ch=='(' && st.slice(i+1,k).match(/^(sin|cos|tan|sec|csc|cot|logten|log|ln|exp|arcsin|arccos|arctan|arcsec|arccsc|arccot|sinh|cosh|tanh|sech|csch|coth|arcsinh|arccosh|arctanh|arcsech|arccsch|arccoth|sqrt|abs|nthroot)$/)) {
+      if (ch=='(' && st.slice(i+1,k).match(/^(sinn|cosn|tann|secn|cscn|cotn|sin|cos|tan|sec|csc|cot|logten|nthlogten|log|ln|exp|arcsin|arccos|arctan|arcsec|arccsc|arccot|sinh|cosh|tanh|sech|csch|coth|arcsinh|arccosh|arctanh|arcsech|arccsch|arccoth|sqrt|abs|nthroot|factorial|safepow)$/)) {
 	      nested = 1;
 	      k++;
 	      while (k<st.length && nested>0) {
@@ -239,37 +273,6 @@ function mathjs(st,varlist) {
     st = st.slice(0,j+1)+"safepow("+st.slice(j+1,i)+","+st.slice(i+1,k)+")"+
            st.slice(k);
   }
-  while ((i=st.indexOf("!"))!=-1) {
-    //find left argument
-    if (i==0) return "Error: missing argument";
-    j = i-1;
-    ch = st.charAt(j);
-    if (ch>="0" && ch<="9") {// look for (decimal) number
-      j--;
-      while (j>=0 && (ch=st.charAt(j))>="0" && ch<="9") j--;
-      if (ch==".") {
-        j--;
-        while (j>=0 && (ch=st.charAt(j))>="0" && ch<="9") j--;
-      }
-    } else if (ch==")") {// look for matching opening bracket and function name
-      nested = 1;
-      j--;
-      while (j>=0 && nested>0) {
-        ch = st.charAt(j);
-        if (ch=="(") nested--;
-        else if (ch==")") nested++;
-        j--;
-      }
-      while (j>=0 && ((ch=st.charAt(j))>="a" && ch<="z" || ch>="A" && ch<="Z"))
-        j--;
-    } else if (ch>="a" && ch<="z" || ch>="A" && ch<="Z") {// look for variable
-      j--;
-      while (j>=0 && ((ch=st.charAt(j))>="a" && ch<="z" || ch>="A" && ch<="Z"))
-        j--;
-    } else {
-      return "Error: incorrect syntax in "+st+" at position "+j;
-    }
-    st = st.slice(0,j+1)+"factorial("+st.slice(j+1,i)+")"+st.slice(i+1);
-  }
+
   return st;
 }
