@@ -808,6 +808,15 @@ if (isset($_GET['delete'])) {
 	   $(".lmsblock").hide();
 	   $("#lms"+el.value).show();
 	 }
+	 function chkgrp(frm, arr, mark) {
+	  var els = frm.getElementsByTagName("input");
+	  for (var i = 0; i < els.length; i++) {
+		  var el = els[i];
+		  if (el.type=="checkbox" && (el.id.indexOf(arr+".")==0 || el.id.indexOf(arr+"-")==0 || el.id==arr)) {
+	     	       el.checked = mark;
+		  }
+	  }
+	}
 	 </script>';
 	$placeinhead .= '<style type="text/css">
 	 .nomark.canvasoptlist li { text-indent: -25px; margin-left: 25px;}
@@ -853,15 +862,38 @@ if (isset($_GET['delete'])) {
 <?php
 	$alt=0;
 	for ($i = 0 ; $i<(count($ids)); $i++) {
-		if ($alt==0) {echo "			<tr class=even>"; $alt=1;} else {echo "			<tr class=odd>"; $alt=0;}
-?>
-				<td>
-				<input type=checkbox name='checked[]' value='<?php echo Sanitize::encodeStringForDisplay($ids[$i]); ?>'>
-				</td>
-				<td><?php echo Sanitize::encodeStringForDisplay($prespace[$i].$types[$i]); ?></td>
-				<td><?php echo Sanitize::encodeStringForDisplay($names[$i]); ?></td>
-			</tr>
-<?php
+		if ($alt==0) {echo "<tr class=even>"; $alt=1;} else {echo "<tr class=odd>"; $alt=0;}
+		echo '<td>';
+		if (strpos($types[$i],'Block')!==false) {
+			echo '<input type=checkbox name="checked[]" id="'.Sanitize::encodeStringForDisplay($parents[$i]).'" ';
+			echo 'onClick="chkgrp(this.form, \''.Sanitize::encodeStringForDisplay($ids[$i]).'\', this.checked);" ';
+			echo 'value="'.Sanitize::encodeStringForDisplay($ids[$i]).'">';			
+		} else {
+			echo '<input type=checkbox name="checked[]" id="'.Sanitize::encodeStringForDisplay($parents[$i].'.'.$ids[$i]).'" ';
+			echo 'value="'.Sanitize::encodeStringForDisplay($ids[$i]).'">';
+		}
+		echo '</td>';
+		$tdpad = 5*strlen($prespace[$i]);
+
+		if ($picicons) {
+			echo '<td style="padding-left:'.$tdpad.'px"><img alt="'.$types[$i].'" title="'.$types[$i].'" src="'.$imasroot.'/img/';
+			switch ($types[$i]) {
+				case 'Calendar': echo $CFG['CPS']['miniicons']['calendar']; break;
+				case 'InlineText': echo $CFG['CPS']['miniicons']['inline']; break;
+				case 'LinkedText': echo $CFG['CPS']['miniicons']['linked']; break;
+				case 'Forum': echo $CFG['CPS']['miniicons']['forum']; break;
+				case 'Wiki': echo $CFG['CPS']['miniicons']['wiki']; break;
+				case 'Block': echo $CFG['CPS']['miniicons']['folder']; break;
+				case 'Assessment': echo $CFG['CPS']['miniicons']['assess']; break;
+				case 'Drill': echo $CFG['CPS']['miniicons']['drill']; break;
+			}
+			echo '" class="floatleft"/><div style="margin-left:21px">'.Sanitize::encodeStringForDisplay($names[$i]).'</div></td>';
+		} else {
+
+			echo '<td>'.Sanitize::encodeStringForDisplay($prespace[$i].$types[$i]).'</td>';
+			echo '<td>'.Sanitize::encodeStringForDisplay($names[$i]).'</td>';
+		}
+		echo '</tr>';
 	}
 ?>
 		</tbody>
