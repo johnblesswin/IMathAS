@@ -917,6 +917,8 @@ if (isset($_GET['delete'])) {
 		<li><input type=checkbox name=includeduedates value=1 checked /> Include <?php echo $installname;?> due dates for assessments</li>
 		<li><input type=checkbox name=includestartdates value=1 /> Include <?php echo $installname;?> start dates for assessments and blocks<br/>
 			<span class="small">Blocks will only include the start date if they are set to hide contents from students when not available.</span></li>
+		<li><input type=checkbox name=datesbylti value=1 <?php if ($datesbylti>0) echo 'checked';?> /> Allow Canvas to set <?php echo $installname;?> due dates<br/>
+			<span class="small">This option can also be set on the Course Settings page.</span></li>
 		</ul>
 		</fieldset>
 		<p><button type="submit">Download Export Cartridge</button></p>
