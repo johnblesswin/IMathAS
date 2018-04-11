@@ -220,7 +220,7 @@ if (isset($_GET['create'])) {
 							if (substr($r[2],0,4)=='http') {
 								//do nothing
 							} else { 
-								$r[2] = getcoursefileurl($r[2]);
+								$r[2] = getcoursefileurl($r[2], true);
 							}
 							$filesout[$r[0]] = array($r[1],$r[2]);
 						}
@@ -260,7 +260,7 @@ if (isset($_GET['create'])) {
 					
 					//do files as weblinks rather than including the file itself
 					if (substr(strip_tags($row[1]),0,5)=="file:") {
-						$row[1] = getcoursefileurl(trim(substr(strip_tags($row[1]),5)));
+						$row[1] = getcoursefileurl(trim(substr(strip_tags($row[1]),5)), true);
 					}
 
 					if ((substr($row[1],0,4)=="http") && (strpos(trim($row[1])," ")===false)) { //is a web link
@@ -556,6 +556,10 @@ if (isset($_GET['create'])) {
 	echo '<h2>Blackboard Export</h2>';
 	echo '<p>This feature will allow you to export a BlackBoard package of your course course, which can ';
 	echo 'then be imported into a BlackBoard LMS.</p>';
+	if ($urlmode == 'http://') {
+		echo '<p>WARNING:  It appears you are accessing this site using an insecure http connection.  Be aware that ';
+		echo 'LTI integration with BlackBoard will not work properly with an http connection.  Use https instead.</p>';
+	}
 	if ($enablebasiclti==false) {
 		echo '<p class="noticetext">Note: Your system does not currenltly have LTI enabled.  Contact your system administrator</p>';
 	}
