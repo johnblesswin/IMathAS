@@ -51,7 +51,38 @@ if (substr($mathimgurl,0,4)!='http' && isset($GLOBALS['basesiteurl'])) {
 }
 function filtercapture($str,&$res) {
 	$str = forcefiltermath($str);
+	$str = forcefiltergraphnofile($str);
 	return $str;
+}
+function forcefiltergraphnofile($str) {
+	if (strpos($str,'embed')!==FALSE) {
+		$str = preg_replace_callback('/<\s*embed.*?sscr=(.)(.+?)\1.*?>/','svgfiltersscrcallbacknofile',$str);
+		$str = preg_replace_callback('/<\s*embed.*?script=(.)(.+?)\1.*?>/','svgfilterscriptcallbacknofile',$str);
+	}
+	return $str;
+}
+function svgfiltersscrcallbacknofile($arr) {
+	if (trim($arr[2])=='') {return $arr[0];}
+
+	if (strpos($arr[0],'style')!==FALSE) {
+		$sty = preg_replace('/.*style\s*=\s*(.)(.+?)\1.*/',"$2",$arr[0]);
+	} else {
+		$sty = "vertical-align: middle;";
+	}
+	return ('<img src="'.$GLOBALS['basesiteurl'].'/filter/graph/svgimg.php?sscr='.Sanitize::encodeUrlParam($arr[2]).'" style="'.$sty.'" alt="Graphs"/>');
+}
+function svgfilterscriptcallbacknofile($arr) {
+	if (trim($arr[2])=='') {return $arr[0];}
+
+	$w = preg_replace('/.*\bwidth\s*=\s*.?(\d+).*/',"$1",$arr[0]);
+	$h = preg_replace('/.*\bheight\s*=\s*.?(\d+).*/',"$1",$arr[0]);
+
+	if (strpos($arr[0],'style')!==FALSE) {
+		$sty = preg_replace('/.*style\s*=\s*(.)(.+?)\1.*/',"$2",$arr[0]);
+	} else {
+		$sty = "vertical-align: middle;";
+	}
+	return ('<img src="'.$GLOBALS['basesiteurl'].'/filter/graph/svgimg.php?script='.Sanitize::encodeUrlParam($arr[2]).'" style="'.$sty.'" alt="Graphs"/>');
 }
 
 $path = realpath("../course/files");
@@ -59,6 +90,7 @@ $path = realpath("../course/files");
 if (isset($_GET['create'])) {
 	error_reporting(0);
 	$loadmathfilter = 1;
+	$loadgraphfilter = 1;
 	require_once("../includes/filehandler.php");
 	require_once("../filter/filter.php");
 	
