@@ -441,7 +441,7 @@ if (isset($_GET['create'])) {
 	unlink($path.'/'.$archive_file_name);
 	exit;
 } else {
-	$pagetitle = "CC Export";
+	$pagetitle = "BB Export";
 	$placeinhead = '<script type="text/javascript">
 	 function updatewhichsel(el) {
 	   if (el.value=="select") { $("#itemselectwrap").show();}
@@ -453,12 +453,13 @@ if (isset($_GET['create'])) {
 	 </style>';
 	require("../header.php");
 	echo "<div class=breadcrumb>$breadcrumbbase <a href=\"../course/course.php?cid=$cid\">"
-		. Sanitize::encodeStringForDisplay($coursename) . "</a> &gt; Common Cartridge Export</div>\n";
+		. Sanitize::encodeStringForDisplay($coursename) . "</a> &gt; BlackBoard Export</div>\n";
 	
 	echo '<div class="cpmid">';
 	if (!isset($CFG['GEN']['noimathasexportfornonadmins']) || $myrights>=75) {
 		echo '<a href="exportitems2.php?cid='.$cid.'">Export for another IMathAS system or as a backup for this system</a> | ';
 	}
+	echo '<a href="ccexport.php?cid='.$cid.'">Export for another LMS</a> | ';
 	echo '<a href="jsonexport.php?cid='. $cid.'" name="button">Export OEA JSON</a>';
 	echo '</div>';
 	
