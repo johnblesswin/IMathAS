@@ -49,7 +49,7 @@ function createbbitem($resid, $parentid, $template, $title, $rep, $handler, &$re
 if (substr($mathimgurl,0,4)!='http' && isset($GLOBALS['basesiteurl'])) {
 	$mathimgurl = substr($GLOBALS['basesiteurl'],0,-1*strlen($imasroot)). $mathimgurl;
 }
-function filtercapture($str,&$res) {
+function filtercapture($str) {
 	$str = forcefiltermath($str);
 	$str = forcefiltergraphnofile($str);
 	return $str;
