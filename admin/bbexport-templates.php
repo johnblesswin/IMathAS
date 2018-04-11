@@ -143,7 +143,7 @@ $basicitem = '<?xml version="1.0" encoding="UTF-8"?>
 	<LINKREF value=""/>
 	<PARENTID value="{{parentid}}"/>
 	<VERSION value="3"/>
-	<EXTENDEDDATA/>
+	<EXTENDEDDATA>{{extendeddata}}</EXTENDEDDATA>
 	<FILES/>
 </CONTENT>';
 

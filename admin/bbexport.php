@@ -245,7 +245,8 @@ if (isset($_GET['create'])) {
 						'{{created}}' => $bbnow,
 						'{{start}}' => '',
 						'{{end}}' => '',
-						'{{launchurl}}' => ''
+						'{{launchurl}}' => '',
+						'{{extendeddata}}' => ''
 						), 'text', $res);
 
 				} else if ($iteminfo[$item][0]=='LinkedText') {
@@ -272,6 +273,7 @@ if (isset($_GET['create'])) {
 							'{{start}}' => '',
 							'{{end}}' => '',
 							'{{launchurl}}' => $alink,
+							'{{extendeddata}}' => ''
 							), 'link', $res);
 					} else { //is text
 						createbbitem($resid, $parentid, 'basicitem', $row[0], array(
@@ -282,6 +284,7 @@ if (isset($_GET['create'])) {
 							'{{start}}' => '',
 							'{{end}}' => '',
 							'{{launchurl}}' => '',
+							'{{extendeddata}}' => ''
 							), 'page', $res);
 					}
 				} else if ($iteminfo[$item][0]=='Forum') {
@@ -314,6 +317,7 @@ if (isset($_GET['create'])) {
 							'{{start}}' => '',
 							'{{end}}' => '',
 							'{{launchurl}}' => '',
+							'{{extendeddata}}' => ''
 							), 'forumitem', $res);
 					
 					$forumlinkresid = 'res'.leftpad($datcnt);
@@ -341,6 +345,10 @@ if (isset($_GET['create'])) {
 					$out .= $ind.'  <title>'.xmlstr($row[0]).'</title>'."\n";
 					$out .= $ind.'</item>'."\n";
 					
+					$extended = '<ENTRY key="customParameters"/>';
+					$extended .= '<ENTRY key="alternateUrl">http://'.Sanitize::domainNameWithPort($_SERVER['HTTP_HOST']) . $imasroot . '/bltilaunch.php?custom_place_aid='.$iteminfo[$item][1].'</ENTRY>';
+					$extended .= '<ENTRY key="vendorInfo">name='.$installname.'&amp;code=IMathAS</ENTRY>';
+					
 					createbbitem($resid, $parentid, 'basicitem', $row[0], array(
 							'{{id}}' => uniqid(),
 							'{{title}}' => xmlstr($row[0]),
@@ -348,7 +356,8 @@ if (isset($_GET['create'])) {
 							'{{created}}' => $bbnow,
 							'{{start}}' => '',
 							'{{end}}' => '',
-							'{{launchurl}}' => $urlmode.Sanitize::domainNameWithPort($_SERVER['HTTP_HOST']) . $imasroot . '/bltilaunch.php?custom_place_aid='.$iteminfo[$item][1]
+							'{{launchurl}}' => $urlmode.Sanitize::domainNameWithPort($_SERVER['HTTP_HOST']) . $imasroot . '/bltilaunch.php?custom_place_aid='.$iteminfo[$item][1],
+							'{{extendeddata}}' => $extended
 							), 'lti', $res);
 					
 					$gbitem = $GLOBALS['outcomedef'];
@@ -386,6 +395,7 @@ if (isset($_GET['create'])) {
 							'{{start}}' => '',
 							'{{end}}' => '',
 							'{{launchurl}}' => '',
+							'{{extendeddata}}' => ''
 							), 'page', $res);
 
 				}
