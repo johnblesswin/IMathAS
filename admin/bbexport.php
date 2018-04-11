@@ -44,14 +44,24 @@ function createbbitem($resid, $parentid, $template, $title, $rep, $handler, &$re
 	
 	file_put_contents($newdir.'/'.$resid.'.dat',$item);
 	$res[] = '<resource bb:file="'.$resid.'.dat" bb:title="'.xmlstr($title).'" identifier="'.$resid.'" type="'.$handlers[$handler][2].'" xml:base="'.$resid.'"/>';
-}			
-
+}		
+//make $mathimgurl absolute if not already
+if (substr($mathimgurl,0,4)!='http' && isset($GLOBALS['basesiteurl'])) {
+	$mathimgurl = substr($GLOBALS['basesiteurl'],0,-1*strlen($imasroot)). $mathimgurl;
+}
+function filtercapture($str,&$res) {
+	$str = forcefiltermath($str);
+	return $str;
+}
 
 $path = realpath("../course/files");
 
 if (isset($_GET['create'])) {
 	error_reporting(0);
+	$loadmathfilter = 1;
 	require_once("../includes/filehandler.php");
+	require_once("../filter/filter.php");
+	
 	$usechecked = ($_POST['whichitems']=='select');
 	if ($usechecked) {
 		$checked = $_POST['checked'];
@@ -199,7 +209,7 @@ if (isset($_GET['create'])) {
 					createbbitem($resid, $parentid, 'basicitem', $row[0], array(
 						'{{id}}' => uniqid(),
 						'{{title}}' => xmlstr($row[0]),
-						'{{summary}}' => xmlstr($text),
+						'{{summary}}' => xmlstr(filtercapture($text)),
 						'{{created}}' => $bbnow,
 						'{{start}}' => '',
 						'{{end}}' => '',
@@ -225,7 +235,7 @@ if (isset($_GET['create'])) {
 						createbbitem($resid, $parentid, 'basicitem', $row[0], array(
 							'{{id}}' => uniqid(),
 							'{{title}}' => xmlstr($row[0]),
-							'{{summary}}' => xmlstr($row[2]),
+							'{{summary}}' => xmlstr(filtercapture($row[2])),
 							'{{created}}' => $bbnow,
 							'{{start}}' => '',
 							'{{end}}' => '',
@@ -235,7 +245,7 @@ if (isset($_GET['create'])) {
 						createbbitem($resid, $parentid, 'basicitem', $row[0], array(
 							'{{id}}' => uniqid(),
 							'{{title}}' => xmlstr($row[0]),
-							'{{summary}}' => xmlstr($row[1]),
+							'{{summary}}' => xmlstr(filtercapture($row[1])),
 							'{{created}}' => $bbnow,
 							'{{start}}' => '',
 							'{{end}}' => '',
@@ -252,7 +262,7 @@ if (isset($_GET['create'])) {
 							'{{id}}' => uniqid(),
 							'{{conferenceid}}' => 'conf1',
 							'{{title}}' => xmlstr($row[0]),
-							'{{summary}}' => xmlstr($row[1]),
+							'{{summary}}' => xmlstr(filtercapture($row[1])),
 							'{{created}}' => $bbnow,
 							'{{end}}' => ''
 							), 'forum', $res);
@@ -267,7 +277,7 @@ if (isset($_GET['create'])) {
 					createbbitem($resid, $parentid, 'basicitem', $row[0], array(
 							'{{id}}' => uniqid(),
 							'{{title}}' => xmlstr($row[0]),
-							'{{summary}}' => xmlstr($row[1]),
+							'{{summary}}' => xmlstr(filtercapture($row[1])),
 							'{{created}}' => $bbnow,
 							'{{start}}' => '',
 							'{{end}}' => '',
@@ -302,7 +312,7 @@ if (isset($_GET['create'])) {
 					createbbitem($resid, $parentid, 'basicitem', $row[0], array(
 							'{{id}}' => uniqid(),
 							'{{title}}' => xmlstr($row[0]),
-							'{{summary}}' => xmlstr($row[1]),
+							'{{summary}}' => xmlstr(filtercapture($row[1])),
 							'{{created}}' => $bbnow,
 							'{{start}}' => '',
 							'{{end}}' => '',
@@ -339,7 +349,7 @@ if (isset($_GET['create'])) {
 					createbbitem($resid, $parentid, 'basicitem', $row[0], array(
 							'{{id}}' => uniqid(),
 							'{{title}}' => xmlstr($row[0]),
-							'{{summary}}' => xmlstr($text),
+							'{{summary}}' => xmlstr(filtercapture($text)),
 							'{{created}}' => $bbnow,
 							'{{start}}' => '',
 							'{{end}}' => '',
