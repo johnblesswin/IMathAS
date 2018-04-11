@@ -336,25 +336,5 @@ $gb = '<?xml version="1.0" encoding="UTF-8"?>
 </GRADEBOOK>';
 
 $bbinfo = '#Bb PackageInfo Property File
-#Fri Apr 06 21:26:09 EDT 2018
-java.class.path=/usr/local/blackboard/apps/service-wrapper/lib/wrapper.jar\:/usr/local/blackboard/jdk/lib/tools.jar\:/usr/local/blackboard/system/build/clover-ant/lib/clover.jar\:/usr/local/blackboard/apps/tomcat/lib/bb-tomcat-bootstrap.jar\:/usr/local/blackboard/apps/tomcat/bin/bootstrap.jar\:/usr/local/blackboard/apps/tomcat/bin/tomcat-juli.jar\:/usr/local/blackboard/apps/tomcat/newrelic/newrelic.jar
-cx.config.course.id=LTIdemo1
-java.vendor=Oracle Corporation
-os.name=Linux
-os.arch=amd64
-java.home=/usr/local/blackboard/jdk/jre
-db.product.name=Oracle
-cx.package.info.version=6.0
-os.version=2.6.32-696.13.2.el6.x86_64
-cx.config.full.value=CxConfig{operation\=EXPORT, courseid\=LTIdemo1, package\=/usr/local/blackboard/content/vi/BBLEARN/courses/1/LTIdemo1/archive/ExportFile_LTIdemo1_20180406092604.zip, logger\=CxLogger{logs\=[Log{name\=/usr/local/blackboard/content/vi/BBLEARN/courses/1/LTIdemo1/archive/ExportFile_LTIdemo1_20180406092604.txt, verbosity\=default}, Log{name\=/usr/local/blackboard/content/vi/BBLEARN/courses/1/LTIdemo1/archive/ExportFile_LTIdemo1_20180406092604_detailed.txt, verbosity\=debug}], logHooks\=[blackboard.apps.cx.CxQueuedOperation@320e5d99]}, resource_type_inclusions\=[resource/x-bb-wiki], area_inclusions\=[GRADEBOOK, DISCUSSION], area_exclusions\=[], object_inclusions\={COURSETOC\=[_4461348_1, _4483123_1]}, object_exclusions\={}, features\={ImportCourseStructure\=false, AlternateAssessmentCsLinks\=false, CreateOrg\=false, ArchiveUserPasswords\=false, Bb5LinkToBrokenImageFix\=true}, strHostName\=www.coursesites.com, isCommandLineRequest\=false, isCourseConversion\=false, eventHandlers\=[]}
-cx.config.package.name=/usr/local/blackboard/content/vi/BBLEARN/courses/1/LTIdemo1/archive/ExportFile_LTIdemo1_20180406092604.zip
-db.product.version=Oracle Database 11g Enterprise Edition Release 11.2.0.3.0 - 64bit Production\nWith the Partitioning, OLAP, Data Mining and Real Application Testing options
-db.driver.name=Oracle JDBC driver
-cx.config.operation=blackboard.apps.cx.CxConfig$Operation\:EXPORT
-java.version=1.7.0_101
-cx.config.package.identifier=34075be3493542df87e89ab07dd2ac4d
-db.driver.version=11.2.0.2.0
-java.default.locale=en_US
-app.release.number=9.1.140152.0
-cx.config.logs=[Log{name\=/usr/local/blackboard/content/vi/BBLEARN/courses/1/LTIdemo1/archive/ExportFile_LTIdemo1_20180406092604.txt, verbosity\=default}, Log{name\=/usr/local/blackboard/content/vi/BBLEARN/courses/1/LTIdemo1/archive/ExportFile_LTIdemo1_20180406092604_detailed.txt, verbosity\=debug}]';
+Export created by '.$installname;
 
