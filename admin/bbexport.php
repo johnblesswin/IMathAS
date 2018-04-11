@@ -246,6 +246,7 @@ if (isset($_GET['create'])) {
 						'{{start}}' => '',
 						'{{end}}' => '',
 						'{{launchurl}}' => '',
+						'{{newwindow}}' => "false",
 						'{{extendeddata}}' => ''
 						), 'text', $res);
 
@@ -273,6 +274,7 @@ if (isset($_GET['create'])) {
 							'{{start}}' => '',
 							'{{end}}' => '',
 							'{{launchurl}}' => $alink,
+							'{{newwindow}}' => "true",
 							'{{extendeddata}}' => ''
 							), 'link', $res);
 					} else { //is text
@@ -284,6 +286,7 @@ if (isset($_GET['create'])) {
 							'{{start}}' => '',
 							'{{end}}' => '',
 							'{{launchurl}}' => '',
+							'{{newwindow}}' => "false",
 							'{{extendeddata}}' => ''
 							), 'page', $res);
 					}
@@ -317,6 +320,7 @@ if (isset($_GET['create'])) {
 							'{{start}}' => '',
 							'{{end}}' => '',
 							'{{launchurl}}' => '',
+							'{{newwindow}}' => "false",
 							'{{extendeddata}}' => ''
 							), 'forumitem', $res);
 					
@@ -356,6 +360,7 @@ if (isset($_GET['create'])) {
 							'{{created}}' => $bbnow,
 							'{{start}}' => '',
 							'{{end}}' => '',
+							'{{newwindow}}' => "false",
 							'{{launchurl}}' => $urlmode.Sanitize::domainNameWithPort($_SERVER['HTTP_HOST']) . $imasroot . '/bltilaunch.php?custom_place_aid='.$iteminfo[$item][1],
 							'{{extendeddata}}' => $extended
 							), 'lti', $res);
@@ -395,6 +400,7 @@ if (isset($_GET['create'])) {
 							'{{start}}' => '',
 							'{{end}}' => '',
 							'{{launchurl}}' => '',
+							'{{newwindow}}' => "false",
 							'{{extendeddata}}' => ''
 							), 'page', $res);
 

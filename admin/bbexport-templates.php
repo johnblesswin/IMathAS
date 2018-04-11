@@ -129,7 +129,7 @@ $basicitem = '<?xml version="1.0" encoding="UTF-8"?>
 		<ISSEQUENTIAL value="false"/>
 		<ALLOWGUESTS value="true"/>
 		<ALLOWOBSERVERS value="true"/>
-		<LAUNCHINNEWWINDOW value="false"/>
+		<LAUNCHINNEWWINDOW value="{{newwindow}}"/>
 		<ISREVIEWABLE value="false"/>
 		<ISGROUPCONTENT value="false"/>
 		<ISSAMPLECONTENT value="false"/>
