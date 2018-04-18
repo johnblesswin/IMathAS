@@ -42,6 +42,9 @@ function createbbitem($resid, $parentid, $template, $title, $rep, $handler, &$re
 	}
 	$item = str_replace('{{parentid}}', $parentid, $item);
 	
+	//empty-string out any remaining fields
+	$item = preg_replace('/{{\w+}}/', '', $item);
+	
 	file_put_contents($newdir.'/'.$resid.'.dat',$item);
 	$res[] = '<resource bb:file="'.$resid.'.dat" bb:title="'.xmlstr($title).'" identifier="'.$resid.'" type="'.$handlers[$handler][2].'" xml:base="'.$resid.'"/>';
 }		
@@ -147,9 +150,7 @@ if (isset($_GET['create'])) {
 	createbbitem('res00002', '', 'toctop', '--TOP--', array(
 		'{{id}}' => $initialblockid,
 		'{{title}}' => '--TOP--',
-		'{{created}}' => $bbnow,
-		'{{start}}' => '',
-		'{{end}}' => '' 
+		'{{created}}' => $bbnow
 		), 'folder', $manifestres);
 	
 	createbbitem('res00003', '', 'conf', 'Conferences', array(
@@ -184,9 +185,7 @@ if (isset($_GET['create'])) {
 						'{{id}}' => $blockid,
 						'{{title}}' =>  xmlstr($item['name']),
 						'{{parentid}}' => $parentid,
-						'{{created}}' => $bbnow,
-						'{{start}}' => '',
-						'{{end}}' => '' 
+						'{{created}}' => $bbnow
 						), 'folder', $res);
 					
 					$out .= $ind.'<item identifier="BLOCK'.$item['id'].'" identifierref="'.$resid.'">'."\n";
@@ -243,11 +242,7 @@ if (isset($_GET['create'])) {
 						'{{title}}' => xmlstr($row[0]),
 						'{{summary}}' => xmlstr(filtercapture($text)),
 						'{{created}}' => $bbnow,
-						'{{start}}' => '',
-						'{{end}}' => '',
-						'{{launchurl}}' => '',
-						'{{newwindow}}' => "false",
-						'{{extendeddata}}' => ''
+						'{{newwindow}}' => "false"
 						), 'text', $res);
 
 				} else if ($iteminfo[$item][0]=='LinkedText') {
@@ -271,11 +266,8 @@ if (isset($_GET['create'])) {
 							'{{title}}' => xmlstr($row[0]),
 							'{{summary}}' => xmlstr(filtercapture($row[2])),
 							'{{created}}' => $bbnow,
-							'{{start}}' => '',
-							'{{end}}' => '',
 							'{{launchurl}}' => $alink,
-							'{{newwindow}}' => "true",
-							'{{extendeddata}}' => ''
+							'{{newwindow}}' => "true"
 							), 'link', $res);
 					} else { //is text
 						createbbitem($resid, $parentid, 'basicitem', $row[0], array(
@@ -283,11 +275,7 @@ if (isset($_GET['create'])) {
 							'{{title}}' => xmlstr($row[0]),
 							'{{summary}}' => xmlstr(filtercapture($row[1])),
 							'{{created}}' => $bbnow,
-							'{{start}}' => '',
-							'{{end}}' => '',
-							'{{launchurl}}' => '',
-							'{{newwindow}}' => "false",
-							'{{extendeddata}}' => ''
+							'{{newwindow}}' => "false"
 							), 'page', $res);
 					}
 				} else if ($iteminfo[$item][0]=='Forum') {
@@ -301,8 +289,7 @@ if (isset($_GET['create'])) {
 							'{{conferenceid}}' => 'conf1',
 							'{{title}}' => xmlstr($row[0]),
 							'{{summary}}' => xmlstr(filtercapture($row[1])),
-							'{{created}}' => $bbnow,
-							'{{end}}' => ''
+							'{{created}}' => $bbnow
 							), 'forum', $res);
 					
 					$resid = 'res'.leftpad($datcnt);
@@ -317,11 +304,7 @@ if (isset($_GET['create'])) {
 							'{{title}}' => xmlstr($row[0]),
 							'{{summary}}' => xmlstr(filtercapture($row[1])),
 							'{{created}}' => $bbnow,
-							'{{start}}' => '',
-							'{{end}}' => '',
-							'{{launchurl}}' => '',
-							'{{newwindow}}' => "false",
-							'{{extendeddata}}' => ''
+							'{{newwindow}}' => "false"
 							), 'forumitem', $res);
 					
 					$forumlinkresid = 'res'.leftpad($datcnt);
@@ -358,8 +341,6 @@ if (isset($_GET['create'])) {
 							'{{title}}' => xmlstr($row[0]),
 							'{{summary}}' => xmlstr(filtercapture($row[1])),
 							'{{created}}' => $bbnow,
-							'{{start}}' => '',
-							'{{end}}' => '',
 							'{{newwindow}}' => "false",
 							'{{launchurl}}' => $urlmode.Sanitize::domainNameWithPort($_SERVER['HTTP_HOST']) . $imasroot . '/bltilaunch.php?custom_place_aid='.$iteminfo[$item][1],
 							'{{extendeddata}}' => $extended
@@ -397,11 +378,7 @@ if (isset($_GET['create'])) {
 							'{{title}}' => xmlstr($row[0]),
 							'{{summary}}' => xmlstr(filtercapture($text)),
 							'{{created}}' => $bbnow,
-							'{{start}}' => '',
-							'{{end}}' => '',
-							'{{launchurl}}' => '',
-							'{{newwindow}}' => "false",
-							'{{extendeddata}}' => ''
+							'{{newwindow}}' => "false"
 							), 'page', $res);
 
 				}
