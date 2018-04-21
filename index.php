@@ -524,7 +524,9 @@ function printCourses($data,$title,$type=null,$hashiddencourses=false) {
 		printCourseOrder($courseListOrder[$type], $data, $type, $printed);
 		$notlisted = array_diff(array_keys($data), $printed);
 		foreach ($notlisted as $i) {
-			printCourseLine($data[$i], $type);
+			if (isset($data[$i])) {
+				printCourseLine($data[$i], $type);
+			}
 		}
 	} else {
 		for ($i=0; $i<count($data); $i++) {
@@ -560,7 +562,7 @@ function printCourseOrder($order, $data, $type, &$printed) {
 			echo '<ul class="nomark courselist courselist-'.$type.'">';
 			printCourseOrder($item['courses'], $data, $type, $printed);
 			echo '</ul></li>';
-		} else {
+		} else if (isset($data[$item])) {
 			printCourseLine($data[$item], $type);
 			$printed[] = $item;
 		}
