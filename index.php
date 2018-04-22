@@ -539,6 +539,7 @@ function printCourses($data,$title,$type=null,$hashiddencourses=false) {
 		echo '<li>', _('Your instructor account has not been approved yet. Please be patient.'), '</li>';
 	}
 	echo '</ul>';
+
 	if ($type=='take') {
 		echo '<div class="center"><a class="abutton" href="forms.php?action=enroll">', _('Enroll in a New Class'), '</a></div>';
 	} else if ($type=='teach' && $myrights>39) {
