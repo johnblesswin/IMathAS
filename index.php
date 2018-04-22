@@ -67,7 +67,7 @@ if ($myrights>15) {
   $placeinhead .= '<script type="text/javascript">$(function() {
   var html = \'<div class="coursedd dropdown"><a role="button" tabindex=0 class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="img/gears.png" alt="Options"/></a>\';
   html += \'<ul role="menu" class="dropdown-menu dropdown-menu-right">\';
-  $(".courselist-teach li").css("clear","both").each(function (i,el) {
+  $(".courselist-teach li:not(.coursegroup)").css("clear","both").each(function (i,el) {
   	if ($(el).attr("data-isowner")=="true" && '.($myrights>39?'true':'false').') {
   		var cid = $(el).attr("data-cid");
   		var thishtml = html + \' <li><a href="admin/forms.php?from=home&action=modify&id=\'+cid+\'">'._('Settings').'</a></li>\';
@@ -547,6 +547,10 @@ function printCourses($data,$title,$type=null,$hashiddencourses=false) {
 	}
 
 	echo '<div class="center">';
+	if (count($data)>0) {
+		echo '<a class="small" href="admin/modcourseorder.php?type='.$type.'">Change Course Order</a>';
+	}
+	echo '</div><div class="center">';
 	echo '<a id="unhidelink'.$type.'" '.($hashiddencourses?'':'style="display:none"').' class="small" href="admin/unhidefromcourselist.php?type='.$type.'">View hidden courses</a>';
 	echo '</div>';
 	if ($type=='teach' && ($myrights>=75 || ($myspecialrights&4)==4)) {
@@ -559,8 +563,8 @@ function printCourses($data,$title,$type=null,$hashiddencourses=false) {
 function printCourseOrder($order, $data, $type, &$printed) {
 	foreach ($order as $item) {
 		if (is_array($item)) {
-			echo '<li><b>'.Sanitize::encodeStringForDisplay($item['name']).'</b>';
-			echo '<ul class="nomark courselist courselist-'.$type.'">';
+			echo '<li class="coursegroup"><b>'.Sanitize::encodeStringForDisplay($item['name']).'</b>';
+			echo '<ul class="nomark courselist">';
 			printCourseOrder($item['courses'], $data, $type, $printed);
 			echo '</ul></li>';
 		} else if (isset($data[$item])) {
