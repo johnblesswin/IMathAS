@@ -513,6 +513,7 @@ ul.tablist li {
 	display: inline-block;
 	border: 1px solid #ccc;
 	background-color: #eee;
+	margin-right: 2px;
 }
 ul.tablist li a {
 	display: inline-block;
