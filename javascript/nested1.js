@@ -298,6 +298,7 @@ window.onDomReady(function() {
 			document.getElementById('recchg').disabled = false;
 			setlinksdisp("none");
 			window.onbeforeunload = function() {return unsavedmsg;}
+			document.getElementById("submitnotice").innerHTML = "";
 		}
 	});
 });
@@ -366,6 +367,11 @@ function NestedahahDone(url, target) {
 		    	document.getElementById("qviewtree").innerHTML = req.responseText.substring(p+1);
 		    }
 		    sortIt.haschanged = false;      
+	    } else if (req.responseText.charAt(0)=='2') {
+	    	    document.getElementById('recchg').disabled = true;
+	    	    window.onbeforeunload = null;
+	    	    document.getElementById(target).innerHTML=_("Saved");
+	    	    sortIt.haschanged = false;
 	    } else {
 		    document.getElementById(target).innerHTML=req.responseText.substring(2);
 	    }

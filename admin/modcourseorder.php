@@ -110,7 +110,7 @@ if (isset($_POST['order'])) {
 	 	 $stm = $DBH->prepare("UPDATE $table SET hidefromcourselist=1 WHERE courseid IN ($ph) AND userid=?");
 	 	 $stm->execute(array_merge($allcourses[1], array($userid)));
 	 }
-	 echo "1,h:";
+	 echo "2";
 	 exit;
 }
 
@@ -140,11 +140,12 @@ while ($row = $stm->fetch(PDO::FETCH_ASSOC)) {
 $placeinhead = '<style type="text/css">.drag {color:red; background-color:#fcc;} .icon {cursor: pointer;} ul.qview li {padding: 3px}</style>';
 $placeinhead .=  "<script>var AHAHsaveurl = '$imasroot/admin/modcourseorder.php?type=$type'; var j=jQuery.noConflict();</script>";
 $placeinhead .= "<script src=\"$imasroot/javascript/mootools.js\"></script>";
-$placeinhead .= "<script src=\"$imasroot/javascript/nested1.js?v=042018\"></script>";
+$placeinhead .= "<script src=\"$imasroot/javascript/nested1.js?v=042318\"></script>";
 $placeinhead .= '<script type="text/javascript">
  	var noblockcookie=true;
 	var ocnt = 0;
 	var unsavedmsg = "'._("You have unrecorded changes.  Are you sure you want to abandon your changes?").'";
+
 	function txtchg() {
 		if (!sortIt.haschanged) {
 			sortIt.haschanged = true;
@@ -160,11 +161,7 @@ $placeinhead .= '<script type="text/javascript">
 		j("#maingrp > ul").prepend(html);
 		j("#newgrp"+ocnt).focus();
 		ocnt++;
-		if (!sortIt.haschanged) {
-			sortIt.haschanged = true;
-			sortIt.fireEvent(\'onFirstChange\', null);
-			window.onbeforeunload = function() {return unsavedmsg;}
-		}
+		txtchg();
 	}
 	function removecoursegrp(el) {
 		if (confirm("'._("Are you sure you want to delete this course group?  This will not delete the included courses.").'")) {
@@ -173,11 +170,7 @@ $placeinhead .= '<script type="text/javascript">
 				curloc.before(j(this));
 			});
 			curloc.remove();
-			if (!sortIt.haschanged) {
-				sortIt.haschanged = true;
-				sortIt.fireEvent(\'onFirstChange\', null);
-				window.onbeforeunload = function() {return unsavedmsg;}
-			}
+			txtchg();
 		}
 	}
 	var itemorderhash="h";
