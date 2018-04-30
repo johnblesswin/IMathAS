@@ -45,10 +45,11 @@ if (!defined('__CSRF_PROTECTOR__')) {
 			self::$config['jsUrl'] = $GLOBALS['basesiteurl'] . "/csrfp/js/simplecsrfprotector.js";
 			
 			// Authorise the incoming request
-			self::authorizePost();
+			if (isset($sessiondata[CSRFP_TOKEN])) {
+				self::authorizePost();
+			}
 			
-			if (!isset($sessiondata[CSRFP_TOKEN]))
-			{
+			if (!isset($sessiondata[CSRFP_TOKEN])) {
 				self::refreshToken();
 			}
 
@@ -65,8 +66,7 @@ if (!defined('__CSRF_PROTECTOR__')) {
 				$token = self::getTokenFromRequest();
 
 				//currently for same origin only
-				if (!($token && isset($sessiondata[CSRFP_TOKEN])
-					&& (self::isValidToken($token)))) {
+				if (!($token && self::isValidToken($token))) {
 
 					//action in case of failed validation
 					self::failedValidationAction();
@@ -304,6 +304,10 @@ if (!defined('__CSRF_PROTECTOR__')) {
 			} else {
 				$log['csrfp_token'] = $sessiondata[CSRFP_TOKEN];
 			}
+			global $DBH;
+			$stm = $DBH->prepare("SELECT time FROM imas_sessions WHERE sessionid=?");
+			$stm->execute(array(session_id()));
+			$log['session_time'] = $stm->fetchColumn(0);
 
 			//remove password from query
 			if (isset($log['query']['password'])) {
